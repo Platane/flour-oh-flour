@@ -14,6 +14,7 @@
     "jest": "26.4.2",
     "microbundle": "0.12.3",
     "prettier": "2.1.0",
+    "surge": "0.21.6",
     "ts-jest": "26.2.0",
     "typescript": "4.0.2"
   },
