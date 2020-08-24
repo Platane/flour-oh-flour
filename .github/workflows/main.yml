@@ -38,6 +38,9 @@ jobs:
       - run: yarn type
       - run: yarn lint
       - run: yarn test --ci
+
+      - run: sudo apt install advancecomp
+
       - run: yarn build
 
       - run: yarn surge ./dist $DEPLOY_ORIGIN
