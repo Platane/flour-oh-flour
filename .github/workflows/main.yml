@@ -79,3 +79,5 @@ jobs:
           SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
           SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
           DEPLOY_ORIGIN: ${{ steps.url.outputs.deploy_origin }}
+
+      - run: node -e "for (const c of require('./dist/report.json').checks){if(c.result!=='ok'){console.error(c);throw c.description;}}"
