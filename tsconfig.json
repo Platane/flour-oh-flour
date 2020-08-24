@@ -2,8 +2,7 @@
   "compilerOptions": {
     "lib": ["ES2020", "DOM"],
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+
     "forceConsistentCasingInFileNames": true
   },
   "exclude": ["node_modules", "dist"]

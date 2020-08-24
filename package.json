@@ -25,7 +25,7 @@
   "scripts": {
     "build:js": "microbundle --compress --no-sourcemap --input src/index.js --output dist/bundle.js --no-pkg-main --format modern",
     "build": "rm -rf dist ; npm run build:js && node ./scripts/buildHtml.js && rm -rf dist/*.ts dist/*.js && ( cd dist ; advzip -4 -a ./bundle.zip ./* )",
-    "dev": "echo \" visit file://$( pwd )/src/index.html\" ; npm run build:js -- --watch",
+    "dev": "echo \" visit file://$( pwd )/src/index.html\" ; microbundle --no-compress --input src/index.js --output dist/bundle.js --no-pkg-main --format modern --watch",
     "test": "jest --config ./jest.config.js --no-cache --passWithNoTests",
     "type": "tsc --noEmit",
     "lint": "yarn prettier -c '**/*.{ts,tsx,js,jsx,json,md}' '!**/dist/**'"
