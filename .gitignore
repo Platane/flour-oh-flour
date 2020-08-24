@@ -1,0 +1,5 @@
+node_modules
+.jest-cache
+.env
+yarn-error.log
+dist
