@@ -9,6 +9,9 @@ import { minify, MinifyOptions } from "terser";
 import mkdirp from "mkdirp";
 
 // @ts-ignore
+import glslify from "rollup-plugin-glslify";
+
+// @ts-ignore
 import babelPresetTypescript from "@babel/preset-typescript";
 
 export const terserOptions: MinifyOptions = {
@@ -49,6 +52,10 @@ export const rollupInputOptions: InputOptions = {
       ],
       plugins: [],
     }),
+    glslify({
+      include: ["**/*.glsl"],
+      compress: true,
+    }),
   ],
 };
 export const rollupOutputOptions: RollupOptions = {
@@ -72,7 +79,7 @@ export const build = async () => {
   const minifiedHtmlContent = minifyHtml(
     htmlContent.replace(
       '<script src="../dist/bundle.js"></script>',
-      `<script>${minifiedJs}</script>`
+      `<script>${minifiedJs!.replace("#define GLSLIFY 1", "")}</script>`
     ),
     minifyHtmlOptions
   );
