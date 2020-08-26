@@ -1,5 +1,5 @@
 import "./canvas";
 
-import shader from "./fragment.glsl";
+import "./renderer/material";
 
-console.log("coucou", shader);
+console.log("coucou");

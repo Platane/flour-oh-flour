@@ -2,10 +2,10 @@ import * as fs from "fs";
 import * as path from "path";
 import * as http from "http";
 import { watch, RollupWatchOptions } from "rollup";
-import { rollupInputOptions, rollupOutputOptions } from "./build";
+import { createRollupInputOptions } from "./build";
 
 const rollupWatchOptions: RollupWatchOptions = {
-  ...rollupInputOptions,
+  ...createRollupInputOptions(false),
   output: {
     format: "es",
     sourcemap: true,
@@ -50,14 +50,15 @@ export const dev = async () => {
           __dirname,
           "..",
           "dist",
-          req.url!.split("/dist/")[1]
+          req.url!.split("/dist/").slice(-1)[0]
         );
       }
 
       res.end(fs.readFileSync(filePath));
     } catch (error) {
-      res.writeHead(500);
-      res.end();
+      if (error.code === "ENOENT") res.writeHead(404);
+      else res.writeHead(500);
+      res.end(error.message);
     }
   });
 
