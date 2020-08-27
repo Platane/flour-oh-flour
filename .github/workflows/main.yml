@@ -43,6 +43,12 @@ jobs:
 
       - run: yarn build
 
+      - name: get bundle size
+        id: size
+        run: |
+          echo "::set-output name=size::`du -b dist/bundle.zip | cut -f1`"
+          echo "::set-output name=size_human::`du -bh dist/bundle.zip | cut -f1`"
+
       - run: yarn surge ./dist $DEPLOY_ORIGIN
         env:
           SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
@@ -70,7 +76,7 @@ jobs:
           body: |
             preview url [${{ steps.url.outputs.deploy_origin }}](${{ steps.url.outputs.deploy_url }})
             [analyze report](${{ steps.url.outputs.report_url }})
-            [bundle.zip](${{ steps.url.outputs.bundle_url }})
+            [bundle.zip](${{ steps.url.outputs.bundle_url }}) ${{ steps.size.outputs.size }} (${{ steps.size.outputs.size_human }})
 
       - uses: crazy-max/ghaction-github-pages@v2.1.1
         with:
