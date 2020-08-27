@@ -25,7 +25,6 @@ jobs:
         id: deployment
         with:
           token: ${{ github.token }}
-          target_url: ${{ steps.url.outputs.deploy_url }}
           environment: preview
           ref: ${{ github.sha }}
 
@@ -70,6 +69,7 @@ jobs:
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
           token: ${{ github.token }}
           target_url: ${{ steps.url.outputs.deploy_url }}
+          environment_url: ${{ steps.url.outputs.deploy_url }}
           state: "success"
 
       - name: comment on commit with useful info
