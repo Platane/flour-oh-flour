@@ -1,6 +1,6 @@
 import { generatePerlinNoise } from "./perlin-noise";
 
-const canvas = document.createElement("canvas");
+export const canvas = document.createElement("canvas");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 canvas.style.position = "fixed";

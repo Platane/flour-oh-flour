@@ -30,7 +30,7 @@ export const createMaterial = () => {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexes, gl.STATIC_DRAW);
 
-    n = indexes.length / 3;
+    n = indexes.length;
   };
 
   const draw = (worldMatrix: Float32Array) => {
