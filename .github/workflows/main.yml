@@ -71,6 +71,8 @@ jobs:
           target_url: ${{ steps.url.outputs.deploy_url }}
           environment_url: ${{ steps.url.outputs.deploy_url }}
           state: "success"
+          description: |
+            size: ${{ steps.size.outputs.size }} (${{ steps.size.outputs.size_human }})
 
       - name: comment on commit with useful info
         uses: peter-evans/commit-comment@v1
