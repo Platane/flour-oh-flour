@@ -69,7 +69,7 @@ export const createRollupInputOptions = (production: boolean) =>
         compress: production,
       }),
 
-      ...(production ? [compiler()] : []),
+      // ...(production ? [compiler()] : []),
     ],
   } as InputOptions);
 
@@ -80,12 +80,26 @@ export const rollupOutputOptions: RollupOptions = {
   },
 };
 
+const termToMangle = [
+  //
+  "aVertexColor",
+  "aVertexPosition",
+  "uWorldMatrix",
+];
+
 export const build = async () => {
   const bundle = await rollup(createRollupInputOptions(true));
 
-  const { output } = await bundle.generate(rollupOutputOptions);
+  const {
+    output: [{ code: outputBundled }],
+  } = await bundle.generate(rollupOutputOptions);
 
-  const { code: minifiedJs } = await minify(output[0].code, terserOptions);
+  const outputMangled = outputBundled.replace(
+    new RegExp("(" + termToMangle.join("|") + ")", "g"),
+    (term) => (termToMangle.indexOf(term) + 10).toString(36)
+  );
+
+  const { code: outputMinified } = await minify(outputMangled, terserOptions);
 
   const htmlContent = fs
     .readFileSync(path.resolve(__dirname, "..", "src", "index.html"))
@@ -94,7 +108,7 @@ export const build = async () => {
   const minifiedHtmlContent = minifyHtml(
     htmlContent.replace(
       '<script src="../dist/bundle.js"></script>',
-      `<script>${minifiedJs!}</script>`
+      `<script>${outputMinified!}</script>`
     ),
     minifyHtmlOptions
   );
