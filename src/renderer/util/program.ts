@@ -29,17 +29,12 @@ export const createProgram = (
   vertexShaderSource: string,
   fragmentShaderSource: string
 ): WebGLProgram => {
-  // Create the shader program
-  const vertexShader = initShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
-  const fragmentShader = initShader(
-    gl,
-    fragmentShaderSource,
-    gl.FRAGMENT_SHADER
-  );
+  const vertShader = initShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
+  const fragShader = initShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
 
   const shaderProgram = gl.createProgram() as WebGLProgram;
-  gl.attachShader(shaderProgram, vertexShader);
-  gl.attachShader(shaderProgram, fragmentShader);
+  gl.attachShader(shaderProgram, vertShader);
+  gl.attachShader(shaderProgram, fragShader);
 
   gl.linkProgram(shaderProgram);
 

@@ -1,5 +1,11 @@
 import "./canvas";
 
-import "./renderer/material";
+import { render } from "./renderer/render";
 
-console.log("coucou");
+const loop = () => {
+  render();
+
+  requestAnimationFrame(loop);
+};
+
+loop();

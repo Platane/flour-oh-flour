@@ -22,7 +22,12 @@ canvas.style.left = "0";
 document.body.appendChild(canvas);
 
 const webglOptions = {
+  // alpha: true,
+  // preserveDrawingBuffer: false,
+  // premultipliedAlpha: false,
+  stencil: true,
   antialias: true,
+  depth: true,
 };
 export const gl = (canvas.getContext("webgl2", webglOptions) ||
   canvas.getContext("webgl", webglOptions)) as WebGLRenderingContext;

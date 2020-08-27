@@ -7,7 +7,9 @@
   "engines": {
     "node": "14"
   },
-  "dependencies": {},
+  "dependencies": {
+    "gl-matrix": "3.3.0"
+  },
   "devDependencies": {
     "@ampproject/rollup-plugin-closure-compiler": "0.26.0",
     "@babel/preset-typescript": "7.10.4",
