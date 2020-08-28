@@ -69,7 +69,7 @@ export const createRollupInputOptions = (production: boolean) =>
         compress: production,
       }),
 
-      // ...(production ? [compiler()] : []),
+      ...(production ? [compiler()] : []),
     ],
   } as InputOptions);
 
@@ -83,8 +83,18 @@ export const rollupOutputOptions: RollupOptions = {
 const termToMangle = [
   //
   "aVertexColor",
+  "aVertexNormal",
   "aVertexPosition",
   "uWorldMatrix",
+  "uWorldInverseTransposedMatrix",
+  "uTime",
+  "vNormal",
+  "vColor",
+
+  "circle",
+  "center",
+  "indices",
+  "radiusSquared",
 ];
 
 export const build = async () => {

@@ -1,4 +1,4 @@
-import { lerp } from "./math";
+import { lerp } from "./math/utils";
 
 const fade = (x: number) =>
   6 * x * x * x * x * x - 15 * x * x * x * x + 10 * x * x * x;

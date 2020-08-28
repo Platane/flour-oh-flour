@@ -1,8 +1,7 @@
 import { gl } from "../canvas";
 import { draw } from "./meshes/cube";
-import { worldMatrix } from "./camera";
 
-gl.clearColor(0.5, 0.5, 0.5, 0.0);
+gl.clearColor(0, 0, 0, 0);
 gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
 gl.cullFace(gl.FRONT_AND_BACK);
@@ -17,5 +16,5 @@ gl.depthFunc(gl.LESS);
 export const render = () => {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  draw(worldMatrix);
+  draw();
 };

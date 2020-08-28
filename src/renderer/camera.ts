@@ -1,21 +1,22 @@
 import { mat4, vec3 } from "gl-matrix";
 import { canvas } from "../canvas";
-import { clamp } from "../math";
+import { clamp } from "../math/utils";
 
 const perspectiveMatrix = new Float32Array(4 * 4);
 const lookAtMatrix = new Float32Array(4 * 4);
 
-const fovx = Math.PI / 2.2;
+const fovx = Math.PI / 3;
 const aspect = window.innerWidth / window.innerHeight;
 const near = 0.01;
 const far = 12;
 mat4.perspective(perspectiveMatrix, fovx, aspect, near, far);
 
 export const worldMatrix = new Float32Array(4 * 4);
+export const worlInverseTransposedMatrix = new Float32Array(4 * 4);
 
 let phi = 1;
 let theta = 1;
-let radius = 1;
+let radius = 2;
 
 const rotationSpeed = 3;
 const up: vec3 = [0, 1, 0];
@@ -30,6 +31,12 @@ const update = () => {
   mat4.lookAt(lookAtMatrix, eye, center, up);
 
   mat4.multiply(worldMatrix, perspectiveMatrix, lookAtMatrix);
+
+  // mat4.transpose(worlInverseTransposedMatrix, worldMatrix);
+  // mat4.invert(worlInverseTransposedMatrix, worlInverseTransposedMatrix);
+
+  mat4.invert(worlInverseTransposedMatrix, worldMatrix);
+  mat4.transpose(worlInverseTransposedMatrix, worlInverseTransposedMatrix);
 };
 
 update();
@@ -51,8 +58,6 @@ canvas.addEventListener("mousemove", (event) => {
 
     phi = clamp(phi, 0, Math.PI);
 
-    console.log(theta, phi);
-
     px = event.pageX;
     py = event.pageY;
 
@@ -63,11 +68,12 @@ canvas.addEventListener("mouseup", () => {
   px = null;
 });
 
-canvas.addEventListener("wheel", (event) => {
-  event.preventDefault();
-  event.stopPropagation();
+canvas.addEventListener(
+  "wheel",
+  (event) => {
+    radius = clamp(radius + (event.deltaY < 0 ? -0.5 : 0.5), 0.5, 10);
 
-  radius = clamp(radius + (event.deltaY < 0 ? -0.5 : 0.5), 0.5, 10);
-
-  update();
-});
+    update();
+  },
+  { passive: true }
+);
