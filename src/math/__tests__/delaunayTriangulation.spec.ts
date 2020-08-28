@@ -1,17 +1,16 @@
-import { delaunayTriangulation } from "../delaunayTriangulation";
-import { vec2 } from "gl-matrix";
+import { getDelaunayTriangulation } from "../getDelaunayTriangulation";
 
 it("should triangulate zero points", () => {
-  expect(delaunayTriangulation([])).toEqual([]);
+  expect(getDelaunayTriangulation([])).toEqual([]);
 });
 
 it("should triangulate 1 points", () => {
-  expect(delaunayTriangulation([[0, 0]])).toEqual([]);
+  expect(getDelaunayTriangulation([[0, 0]])).toEqual([]);
 });
 
 it("should triangulate 3 points", () => {
   expect(
-    delaunayTriangulation([
+    getDelaunayTriangulation([
       [0, 0],
       [0, 1],
       [1, 0],
@@ -21,7 +20,7 @@ it("should triangulate 3 points", () => {
 
 it("should triangulate 5 points", () => {
   expect(
-    delaunayTriangulation([
+    getDelaunayTriangulation([
       [0, 0],
       [0, 1],
       [0, -1],

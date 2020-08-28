@@ -1,5 +1,6 @@
 import { gl } from "../canvas";
-import { draw } from "./meshes/cube";
+import { draw as drawCube } from "./meshes/cube";
+import { draw as drawTerrain } from "./meshes/terrain";
 
 gl.clearColor(0, 0, 0, 0);
 gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
@@ -16,5 +17,6 @@ gl.depthFunc(gl.LESS);
 export const render = () => {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  draw();
+  drawCube();
+  drawTerrain();
 };

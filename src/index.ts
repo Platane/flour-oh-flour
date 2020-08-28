@@ -1,7 +1,7 @@
 import "./canvas";
 
 import { render } from "./renderer/render";
-import { delaunayTriangulation } from "./math/delaunayTriangulation";
+import { getDelaunayTriangulation } from "./math/getDelaunayTriangulation";
 import { vec2 } from "gl-matrix";
 
 const loop = () => {
@@ -33,7 +33,7 @@ loop();
         (Math.random() * 1.2 - 0.1) * window.innerHeight,
       ] as vec2
   );
-  delaunayTriangulation(points).forEach(([a, b, c]) => {
+  getDelaunayTriangulation(points).forEach(([a, b, c]) => {
     ctx.beginPath();
     ctx.fillStyle = `hsla(${Math.random() * 360},90%,50%,0.2)`;
     ctx.moveTo(points[a][0], points[a][1]);

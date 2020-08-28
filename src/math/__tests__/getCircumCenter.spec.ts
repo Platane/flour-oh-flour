@@ -1,4 +1,4 @@
-import { getCircumCenter } from "../delaunayTriangulation";
+import { getCircumCenter } from "../getDelaunayTriangulation";
 import { vec2 } from "gl-matrix";
 
 test.each([

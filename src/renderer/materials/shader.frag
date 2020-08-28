@@ -20,4 +20,6 @@ void main(void) {
   gl_FragColor.rgb *= light + ( 0.0 * uTime );  
 
   gl_FragColor = vec4(vNormal, 1.0);
+
+  // gl_FragColor = vec4(vColor, 1.0);
 }

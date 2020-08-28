@@ -44,29 +44,49 @@ update();
 let px: number | null = null;
 let py: number | null = null;
 
-canvas.addEventListener("mousedown", (event) => {
-  px = event.pageX;
-  py = event.pageY;
-});
-canvas.addEventListener("mousemove", (event) => {
+const rotateStart = (x: number, y: number) => {
+  px = x;
+  py = y;
+};
+const rotateMove = (x: number, y: number) => {
   if (px !== null) {
-    const dx = event.pageX - px!;
-    const dy = event.pageY - py!;
+    const dx = x - px!;
+    const dy = y - py!;
 
     theta -= (dx / window.innerHeight) * rotationSpeed;
     phi -= (dy / window.innerHeight) * rotationSpeed;
 
     phi = clamp(phi, 0, Math.PI);
 
-    px = event.pageX;
-    py = event.pageY;
+    px = x;
+    py = y;
 
     update();
   }
-});
-canvas.addEventListener("mouseup", () => {
+};
+const rotateEnd = () => {
   px = null;
-});
+};
+
+canvas.addEventListener("mousedown", (event) =>
+  rotateStart(event.pageX, event.pageY)
+);
+canvas.addEventListener("mousemove", (event) =>
+  rotateMove(event.pageX, event.pageY)
+);
+canvas.addEventListener("mouseup", rotateEnd);
+
+canvas.addEventListener(
+  "touchstart",
+  (event) => rotateStart(event.touches[0].pageX, event.touches[0].pageY),
+  { passive: true }
+);
+canvas.addEventListener(
+  "touchmove",
+  (event) => rotateMove(event.touches[0].pageX, event.touches[0].pageY),
+  { passive: true }
+);
+canvas.addEventListener("touchend", rotateEnd, { passive: true });
 
 canvas.addEventListener(
   "wheel",

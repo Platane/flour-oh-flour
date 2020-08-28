@@ -29,10 +29,8 @@ export const getFlatShadingNormals = (
     vec3.normalize(n, n);
 
     normals[ak + 0] = normals[bk + 0] = normals[ck + 0] = n[0];
-    normals[ck + 1] = normals[bk + 1] = normals[bk + 1] = n[1];
-    normals[ck + 2] = normals[bk + 2] = normals[bk + 2] = n[2];
-
-    debugger;
+    normals[ak + 1] = normals[bk + 1] = normals[ck + 1] = n[1];
+    normals[ak + 2] = normals[bk + 2] = normals[ck + 2] = n[2];
   }
 
   return normals;
