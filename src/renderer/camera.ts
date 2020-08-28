@@ -56,7 +56,7 @@ const rotateMove = (x: number, y: number) => {
     theta -= (dx / window.innerHeight) * rotationSpeed;
     phi -= (dy / window.innerHeight) * rotationSpeed;
 
-    phi = clamp(phi, 0, Math.PI);
+    phi = clamp(phi, 0.001, (2 * Math.PI) / 3);
 
     px = x;
     py = y;
