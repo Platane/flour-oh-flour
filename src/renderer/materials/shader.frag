@@ -8,18 +8,24 @@ uniform float uTime;
 
 void main(void) {
 
-  float angle = uTime * 2.0 * 1.0;
-  vec3 lightDirection = vec3( sin(angle), -10, cos(angle) );
   
-  normalize(lightDirection);
 
-  float light = clamp( dot(vNormal, lightDirection) , 0.0, 1.0 );
+  vec3 staticLightDirection = vec3(1.0,1.0,1.0);
+  normalize(staticLightDirection);
+  float staticLightPower = clamp( dot(vNormal, staticLightDirection) , 0.0, 1.0 );
+
+  float angle = uTime * 2.0 * 1.0;
+  vec3 movingLightDirection = vec3( sin(angle), 1.5, cos(angle) );
+  normalize(movingLightDirection);
+  float movingLightPower =  dot(vNormal, movingLightDirection) ;
 
   gl_FragColor = vec4(vColor, 1.0);
 
-  gl_FragColor.rgb *= light + ( 0.0 * uTime );  
+  // gl_FragColor.rgb *= clamp(  staticLightPower, 0.02, 0.5 )  +  ( 1.0 + movingLightPower ) * 0.5  ;  
 
-  gl_FragColor = vec4(vNormal, 1.0);
+  gl_FragColor = vec4(vNormal * 0.5 + 0.5  , 1.0);
 
-  // gl_FragColor = vec4(vColor, 1.0);
+  // gl_FragColor = vec4(lightDirection*0.5+0.5, 1.0);
+  // gl_FragColor = vec4(lightPower,lightPower,lightPower, 1.0);
+  
 }

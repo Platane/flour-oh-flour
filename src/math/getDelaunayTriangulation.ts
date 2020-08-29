@@ -94,7 +94,10 @@ const computeBoundingTriangle = (points: vec2[]): vec2[] => {
   ];
 };
 
-export const getDelaunayTriangulation = (points: vec2[]) => {
+export const getDelaunayTriangulation = (points: vec2[]) =>
+  getDelaunayTriangulationAndCircle(points).map(({ indices }) => indices);
+
+export const getDelaunayTriangulationAndCircle = (points: vec2[]) => {
   // determine a triangle which contains all the points as starting triangle
   // then add points one by one
 
@@ -146,7 +149,5 @@ export const getDelaunayTriangulation = (points: vec2[]) => {
 
   points.splice(n, 3);
 
-  return triangles
-    .filter(({ indices }) => !indices.some((x) => x >= n))
-    .map(({ indices }) => indices);
+  return triangles.filter(({ indices }) => !indices.some((x) => x >= n));
 };

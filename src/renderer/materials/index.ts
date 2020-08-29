@@ -19,6 +19,8 @@ const worlInverseTransposedMatrixLocation = getUniformLocation(
   "uWorldInverseTransposedMatrix"
 );
 
+const s = Date.now();
+
 export const createMaterial = () => {
   const positionBuffer = gl.createBuffer();
   const normalBuffer = gl.createBuffer();
@@ -46,8 +48,6 @@ export const createMaterial = () => {
 
     n = indexes.length;
   };
-
-  const s = Date.now();
 
   const draw = () => {
     gl.useProgram(program);

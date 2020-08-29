@@ -52,6 +52,7 @@ const fColors = Float32Array.from(
   indices
     .map(([]) => {
       const color = [Math.random(), Math.random(), Math.random()];
+      // const color = [0.3, 0.8, 0.4];
       return [color, color, color];
     })
     .flat(2)
