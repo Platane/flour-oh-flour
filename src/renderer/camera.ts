@@ -16,7 +16,7 @@ export const worlInverseTransposedMatrix = new Float32Array(4 * 4);
 
 let phi = 1;
 let theta = 1;
-let zoom = 2;
+let zoom = 16;
 
 const rotationSpeed = 3;
 const up: vec3 = [0, 1, 0];
@@ -58,7 +58,7 @@ const rotateMove = (x: number, y: number) => {
     theta -= (dx / window.innerHeight) * rotationSpeed;
     phi -= (dy / window.innerHeight) * rotationSpeed;
 
-    phi = clamp(phi, 0.001, (2 * Math.PI) / 3);
+    phi = clamp(phi, 0.001, (4 * Math.PI) / 5);
 
     px = x;
     py = y;

@@ -103,6 +103,7 @@ const propertiesToMangle = [
   "indices",
   "normals",
   "colors",
+  "color",
 ];
 
 export const build = async () => {
