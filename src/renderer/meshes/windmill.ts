@@ -112,16 +112,16 @@ export const createWindmill = () => {
       [
         [ ( bodyBottomRadius + plankDepth ) * bx - vx * plankWidth, footHeight + 0                   , ( bodyBottomRadius + plankDepth ) * by - vy * plankWidth],
         [ ( bodyTopRadius    + plankDepth ) * bx - vx * plankWidth, footHeight + bodyHeight - roofTip, ( bodyTopRadius    + plankDepth ) * by - vy * plankWidth],
-        [ 0                                                       , footHeight + bodyHeight - roofTip, 0                                                       ],
-        [ 0                                                       , footHeight + 0                   , 0                                                       ],
+        [ ( bodyTopRadius                 ) * bx - vx * plankWidth, footHeight + bodyHeight - roofTip, ( bodyTopRadius                 ) * by - vy * plankWidth],
+        [ ( bodyBottomRadius              ) * bx - vx * plankWidth, footHeight + 0                   , ( bodyBottomRadius              ) * by - vy * plankWidth],
       ],
 
       // prettier-ignore
       [
         [ ( bodyTopRadius    + plankDepth ) * ax + vx * plankWidth, footHeight + bodyHeight - roofTip, ( bodyTopRadius    + plankDepth ) * ay + vy * plankWidth],
         [ ( bodyBottomRadius + plankDepth ) * ax + vx * plankWidth, footHeight + 0                   , ( bodyBottomRadius + plankDepth ) * ay + vy * plankWidth],
-        [ 0                                                       , footHeight + 0                   , 0                                                       ],
-        [ 0                                                       , footHeight + bodyHeight - roofTip, 0                                                       ],
+        [ ( bodyBottomRadius              ) * ax + vx * plankWidth, footHeight + 0                   , ( bodyBottomRadius              ) * ay + vy * plankWidth],
+        [ ( bodyTopRadius                 ) * ax + vx * plankWidth, footHeight + bodyHeight - roofTip, ( bodyTopRadius                 ) * ay + vy * plankWidth],
       ],
     ])
       faces.push({
