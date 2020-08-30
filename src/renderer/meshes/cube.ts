@@ -1,19 +1,20 @@
 import { createMaterial } from "../materials";
 import { getFlatShadingNormals } from "../utils/flatShading";
 
+const u = 0.1;
 // prettier-ignore
 const vertices = Float32Array.from([
     0,0,0,
-    1,0,0,
-    0,1,0,
+    u,0,0,
+    0,u,0,
 
     0,0,0,
-    0,1,0,
-    0,0,1,
+    0,u,0,
+    0,0,u,
 
     0,0,0,
-    0,0,1,
-    1,0,0,
+    0,0,u,
+    u,0,0,
 ])
 
 // // prettier-ignore

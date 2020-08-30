@@ -16,7 +16,7 @@ export const worlInverseTransposedMatrix = new Float32Array(4 * 4);
 
 let phi = 1;
 let theta = 1;
-let radius = 2;
+let zoom = 2;
 
 const rotationSpeed = 3;
 const up: vec3 = [0, 1, 0];
@@ -24,6 +24,8 @@ const center: vec3 = [0, 0, 0];
 const eye: vec3 = [0, 0, 1];
 
 const update = () => {
+  const radius = 0.1 + zoom * 0.5;
+
   const sinPhiRadius = Math.sin(phi) * radius;
   eye[0] = sinPhiRadius * Math.sin(theta);
   eye[1] = Math.cos(phi) * radius;
@@ -91,7 +93,7 @@ canvas.addEventListener("touchend", rotateEnd, { passive: true });
 canvas.addEventListener(
   "wheel",
   (event) => {
-    radius = clamp(radius + (event.deltaY < 0 ? -0.5 : 0.5), 0.5, 10);
+    zoom = clamp(zoom + (event.deltaY < 0 ? -1 : 1), 0, 50);
 
     update();
   },

@@ -27,11 +27,11 @@ loop();
   const ctx = canvas.getContext("2d")!;
 
   const points = Array.from(
-    { length: 600 },
+    { length: 300 },
     () =>
       [
-        (Math.random() * 1.2 - 0.1) * window.innerWidth,
-        (Math.random() * 1.2 - 0.1) * window.innerHeight,
+        (Math.random() * 1.6 - 0.3) * window.innerWidth,
+        (Math.random() * 1.6 - 0.3) * window.innerHeight,
       ] as vec2
   );
 
@@ -47,7 +47,7 @@ loop();
   const { vertices, faces } = getVoronoiTesselation(points);
   faces.forEach((face) => {
     ctx.beginPath();
-    ctx.fillStyle = `hsla(${Math.random() * 360},90%,50%,0.35)`;
+    ctx.fillStyle = `hsla(${Math.random() * 360},90%,50%,0.15)`;
     ctx.moveTo(vertices[face[0]][0], vertices[face[0]][1]);
     for (let i = face.length; i--; )
       ctx.lineTo(vertices[face[i]][0], vertices[face[i]][1]);
