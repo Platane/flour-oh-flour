@@ -90,11 +90,19 @@ const termToMangle = [
   "uTime",
   "vNormal",
   "vColor",
+];
+const propertiesToMangle = [
+  //
+  "updateGeometry",
 
   "circle",
   "center",
-  "indices",
   "radiusSquared",
+
+  "vertices",
+  "indices",
+  "normals",
+  "colors",
 ];
 
 export const build = async () => {
@@ -111,6 +119,12 @@ export const build = async () => {
 
   const { code: outputMinified } = await minify(outputMangled, terserOptions);
 
+  const outPutReMangled = outputMinified!.replace(
+    new RegExp(`[^\w](` + propertiesToMangle.join("|") + `)[^\w]`, "g"),
+    (x, term) =>
+      x.replace(term, (propertiesToMangle.indexOf(term) + 10).toString(36))
+  );
+
   const htmlContent = fs
     .readFileSync(path.resolve(__dirname, "..", "src", "index.html"))
     .toString();
@@ -118,7 +132,7 @@ export const build = async () => {
   const minifiedHtmlContent = minifyHtml(
     htmlContent.replace(
       '<script src="../dist/bundle.js"></script>',
-      `<script>${outputMinified!}</script>`
+      `<script>${outPutReMangled!}</script>`
     ),
     minifyHtmlOptions
   );
