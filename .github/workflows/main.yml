@@ -46,8 +46,17 @@ jobs:
       - name: get bundle size
         id: size
         run: |
-          echo "::set-output name=size::`du -b dist/bundle.zip | cut -f1`"
+          SIZE=`du -b dist/bundle.zip | cut -f1`
+          echo "::set-output name=size::$SIZE"
           echo "::set-output name=size_human::`du -bh dist/bundle.zip | cut -f1`"
+          echo "::set-output name=badge_color::`[[ $SIZE -gt 13312 ]] && echo 'red' || echo 'green'`"
+
+      - name: generate badge data
+        run: |
+          node -e "console.log(JSON.stringify({label:'size',message:process.env.SIZE_HUMAN,color:+process.env.SIZE<=13312?'success':'important'}))" > dist/shieldio_size.json
+        env:
+          SIZE: ${{ steps.size.outputs.size }}
+          SIZE_HUMAN: ${{ steps.size.outputs.size_human }}
 
       - run: yarn surge ./dist $DEPLOY_ORIGIN
         env:
