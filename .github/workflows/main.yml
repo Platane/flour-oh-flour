@@ -124,7 +124,7 @@ jobs:
           name: build
 
       - name: test the bundle against the report endpoint
-        run: curl -X POST --form bundle=@bundle.zip --form category=desktop https://iw8sii1h9b.execute-api.eu-west-1.amazonaws.com/stage/analyze-bundle >> report.json
+        run: curl --silent -X POST --form bundle=@bundle.zip --form category=desktop https://iw8sii1h9b.execute-api.eu-west-1.amazonaws.com/stage/analyze-bundle > report.json
 
       - name: fails if the report failed
         run: node -e "for (const c of require('./report.json').checks){if(c.result!=='ok'){console.error(c);throw c.description;}}"
