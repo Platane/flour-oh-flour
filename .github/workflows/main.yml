@@ -68,7 +68,7 @@ jobs:
       - name: generate deploy url
         id: url
         run: |
-          ORIGIN=$SHA-platane-js13k2020.surge.sh
+          ORIGIN=${SHA:0:7}-platane-js13k2020.surge.sh
           echo "::set-output name=deploy_origin::$ORIGIN"
           echo "::set-output name=deploy_url::https://$ORIGIN/index.html"
         env:
