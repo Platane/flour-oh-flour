@@ -21,7 +21,8 @@ void main(void) {
 
   gl_FragColor = vec4(vColor, 1.0);
 
-  gl_FragColor.rgb *= clamp(  staticLightPower, 0.02, 0.5 )  +  ( 1.0 + movingLightPower ) * 0.5  ;  
+  // gl_FragColor.rgb *= clamp(  staticLightPower, 0.02, 0.5 )  +  ( 1.0 + movingLightPower ) * 0.5  ;  
+  gl_FragColor.rgb *= 0.8 + clamp(  staticLightPower, -0.97, 0.99 ) * 0.4 + clamp( movingLightPower, -0.9, 0.5 ) * 0.3 ;
 
   // gl_FragColor = vec4(vNormal * 0.5 + 0.5  , 1.0);
 
