@@ -82,22 +82,17 @@ jobs:
           environment: preview
           ref: ${{ github.sha }}
 
-      - uses: actions/setup-node@v1.4.2
-        with:
-          node-version: 14
-
-      - run: yarn add surge@0.21.6
-
       - uses: actions/download-artifact@v2
         with:
           name: build
           path: dist
 
-      - run: yarn surge ./dist $DEPLOY_ORIGIN
-        env:
-          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
-          SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
-          DEPLOY_ORIGIN: ${{ steps.url.outputs.deploy_origin }}
+      - uses: dswistowski/surge-sh-action@v1
+        with:
+          domain: ${{ steps.url.outputs.deploy_origin }}
+          project: ./dist
+          login: ${{ secrets.SURGE_LOGIN }}
+          token: ${{ secrets.SURGE_TOKEN }}
 
       - name: mark the github deployment as failed
         uses: chrnorm/deployment-status@releases/v1
