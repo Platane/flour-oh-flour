@@ -31,12 +31,12 @@ const points = Array.from({ length: 2000 }, () => {
   return [x, y];
 });
 
-const indices = getDelaunayTriangulation(points as vec2[]);
+const indexes = getDelaunayTriangulation(points as vec2[]);
 
 const vertices = points.map(([x, z]) => [x, h(x, z), z]);
 
 const fVertices = Float32Array.from(
-  indices
+  indexes
     .map(([a, b, c]) => {
       const A = vertices[a];
       const B = vertices[b];
@@ -49,7 +49,7 @@ const fVertices = Float32Array.from(
     .flat(2)
 );
 const fColors = Float32Array.from(
-  indices
+  indexes
     .map(([]) => {
       // const color = [Math.random(), Math.random(), Math.random()];
       const color = [0.3, 0.8, 0.4];
@@ -57,13 +57,13 @@ const fColors = Float32Array.from(
     })
     .flat(2)
 );
-const fIndices = Uint16Array.from(
-  indices.map((_, i) => [i * 3 + 0, i * 3 + 1, i * 3 + 2]).flat() as number[]
+const findexes = Uint16Array.from(
+  indexes.map((_, i) => [i * 3 + 0, i * 3 + 1, i * 3 + 2]).flat() as number[]
 );
-const fNormals = getFlatShadingNormals(fIndices, fVertices);
+const fNormals = getFlatShadingNormals(findexes, fVertices);
 
 const m = createMaterial();
 
-m.updateGeometry(fIndices, fColors, fVertices, fNormals);
+m.updateGeometry(findexes, fColors, fVertices, fNormals);
 
 export const draw = m.draw;

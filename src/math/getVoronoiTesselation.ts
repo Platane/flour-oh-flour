@@ -9,7 +9,7 @@ export const getVoronoiTesselation = (points: vec2[]) => {
   for (let i = points.length; i--; ) {
     const ts = [];
     for (let j = triangles.length; j--; j)
-      if (triangles[j].indices.includes(i)) ts.push(j);
+      if (triangles[j].indexes.includes(i)) ts.push(j);
 
     if (ts.length === 0) break;
 
@@ -19,20 +19,20 @@ export const getVoronoiTesselation = (points: vec2[]) => {
     let b: number;
 
     for (let j = 3; j--; )
-      if (triangles[k].indices[j] === i) {
-        a = triangles[k].indices[(j + 1) % 3];
-        b = triangles[k].indices[(j + 2) % 3];
+      if (triangles[k].indexes[j] === i) {
+        a = triangles[k].indexes[(j + 1) % 3];
+        b = triangles[k].indexes[(j + 2) % 3];
       }
 
     while (true) {
-      const j = ts.findIndex((k) => triangles[k].indices.includes(a));
+      const j = ts.findIndex((k) => triangles[k].indexes.includes(a));
 
       if (j === -1) break;
 
       const k = ts.splice(j, 1)[0];
       hull.push(k);
 
-      for (const u of triangles[k].indices)
+      for (const u of triangles[k].indexes)
         if (u !== a! && u !== i) {
           a = u;
           break;

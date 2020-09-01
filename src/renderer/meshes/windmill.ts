@@ -308,16 +308,16 @@ const toBuffer = (faces: { vertices: vec3[]; color: number[] }[]) => {
 
   const fColors = Float32Array.from(colors.flat());
   const fVertices = Float32Array.from((vertices as number[][]).flat());
-  const fIndices = Uint16Array.from(
+  const findexes = Uint16Array.from(
     { length: fVertices.length / 3 },
     (_, i) => i
   );
-  const fNormals = getFlatShadingNormals(fIndices, fVertices);
+  const fNormals = getFlatShadingNormals(findexes, fVertices);
 
   return {
     vertices: fVertices,
     normals: fNormals,
-    indexes: fIndices,
+    indexes: findexes,
     colors: fColors,
   };
 };

@@ -102,7 +102,8 @@ const propertiesToMangle = [
   "radiusSquared",
 
   "vertices",
-  "indices",
+  "indexes",
+  "faces",
   "normals",
   "colors",
   "color",
