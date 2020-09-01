@@ -3,31 +3,9 @@ name: main
 on: [push, pull_request]
 
 jobs:
-  main:
+  test:
     runs-on: ubuntu-latest
-
     steps:
-      # prepare var and create a deployment
-      - name: generate deploy url
-        id: url
-        run: |
-          ORIGIN=$SHA-platane-js13k2020.surge.sh
-          echo $ORIGIN
-          echo "::set-output name=deploy_origin::$ORIGIN"
-          echo "::set-output name=deploy_url::https://$ORIGIN/index.html"
-          echo "::set-output name=bundle_url::https://$ORIGIN/bundle.zip"
-          echo "::set-output name=report_url::https://$ORIGIN/report.json"
-        env:
-          SHA: ${{ github.sha }}
-
-      - name: start github deployment
-        uses: chrnorm/deployment-action@releases/v1
-        id: deployment
-        with:
-          token: ${{ github.token }}
-          environment: preview
-          ref: ${{ github.sha }}
-
       - uses: actions/checkout@v1
       - uses: actions/setup-node@v1.4.2
         with:
@@ -39,24 +17,81 @@ jobs:
       - run: yarn lint
       - run: yarn test --ci
 
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1.4.2
+        with:
+          node-version: 14
+
       - run: sudo apt install advancecomp
+
+      - uses: bahmutov/npm-install@v1.4.1
 
       - run: yarn build
 
-      - name: get bundle size
-        id: size
-        run: |
-          SIZE=`du -b dist/bundle.zip | cut -f1`
-          echo "::set-output name=size::$SIZE"
-          echo "::set-output name=size_human::`du -bh dist/bundle.zip | cut -f1`"
-          echo "::set-output name=badge_color::`[[ $SIZE -gt 13312 ]] && echo 'red' || echo 'green'`"
+      - uses: actions/upload-artifact@v2
+        with:
+          name: build
+          path: ./dist/*
 
-      - name: generate badge data
+  deploy-ghpages:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v1.4.2
+        with:
+          node-version: 14
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: build
+          path: dist
+
+      - name: generate badge
         run: |
-          node -e "console.log(JSON.stringify({label:'size',message:process.env.SIZE_HUMAN,color:+process.env.SIZE<=13312?'success':'important'}))" > dist/shieldio_size.json
+          node -e "const s=require('fs').statSync('dist/bundle.zip').size;console.log(JSON.stringify({label:'size',message:(s/1024).toFixed(2)+'K',color:s<13312?'success':'important'}))" > dist/shieldio_size.json
+
+      - name: deploy to gh-pages
+        uses: crazy-max/ghaction-github-pages@v2.1.1
+        with:
+          target_branch: gh-pages
+          build_dir: dist
         env:
-          SIZE: ${{ steps.size.outputs.size }}
-          SIZE_HUMAN: ${{ steps.size.outputs.size_human }}
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN_GH_PAGES }}
+
+  deploy-surge:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: generate deploy url
+        id: url
+        run: |
+          ORIGIN=$SHA-platane-js13k2020.surge.sh
+          echo "::set-output name=deploy_origin::$ORIGIN"
+          echo "::set-output name=deploy_url::https://$ORIGIN/index.html"
+        env:
+          SHA: ${{ github.sha }}
+
+      - name: start github deployment
+        uses: chrnorm/deployment-action@releases/v1
+        id: deployment
+        with:
+          token: ${{ github.token }}
+          environment: preview
+          ref: ${{ github.sha }}
+
+      - uses: actions/setup-node@v1.4.2
+        with:
+          node-version: 14
+
+      - run: yarn add surge@0.21.6
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: build
+          path: dist
 
       - run: yarn surge ./dist $DEPLOY_ORIGIN
         env:
@@ -80,35 +115,26 @@ jobs:
           target_url: ${{ steps.url.outputs.deploy_url }}
           environment_url: ${{ steps.url.outputs.deploy_url }}
           state: "success"
-          description: |
-            size: ${{ steps.size.outputs.size }} (${{ steps.size.outputs.size_human }})
 
-      - name: comment on commit with useful info
-        uses: peter-evans/commit-comment@v1
+  analyze-bundle:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v1.4.2
         with:
-          token: ${{ github.token }}
-          sha: ${{ github.sha }}
-          body: |
-            preview url [${{ steps.url.outputs.deploy_origin }}](${{ steps.url.outputs.deploy_url }})
-            [analyze report](${{ steps.url.outputs.report_url }})
-            [bundle.zip](${{ steps.url.outputs.bundle_url }}) ${{ steps.size.outputs.size }} (${{ steps.size.outputs.size_human }})
+          node-version: 14
 
-      - name: deploy to gh-pages
-        uses: crazy-max/ghaction-github-pages@v2.1.1
+      - uses: actions/download-artifact@v2
         with:
-          target_branch: gh-pages
-          build_dir: dist
-        env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN_GH_PAGES }}
+          name: build
 
       - name: test the bundle against the report endpoint
-        run: curl -X POST --form bundle=@dist/bundle.zip --form category=desktop https://iw8sii1h9b.execute-api.eu-west-1.amazonaws.com/stage/analyze-bundle >> dist/report.json
-
-      - run: yarn surge ./dist $DEPLOY_ORIGIN
-        env:
-          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
-          SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
-          DEPLOY_ORIGIN: ${{ steps.url.outputs.deploy_origin }}
+        run: curl -X POST --form bundle=@bundle.zip --form category=desktop https://iw8sii1h9b.execute-api.eu-west-1.amazonaws.com/stage/analyze-bundle >> report.json
 
       - name: fails if the report failed
-        run: node -e "for (const c of require('./dist/report.json').checks){if(c.result!=='ok'){console.error(c);throw c.description;}}"
+        run: node -e "for (const c of require('./report.json').checks){if(c.result!=='ok'){console.error(c);throw c.description;}}"
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: bundle-analyzer-report
+          path: report.json

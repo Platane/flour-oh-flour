@@ -27,7 +27,6 @@
     "prettier": "2.1.0",
     "rollup": "2.26.5",
     "rollup-plugin-glslify": "1.2.0",
-    "surge": "0.21.6",
     "terser": "5.2.1",
     "ts-jest": "26.2.0",
     "ts-node": "9.0.0",
