@@ -35,6 +35,8 @@ export const terserOptions: MinifyOptions = {
 
 export const minifyHtmlOptions = {
   collapseWhitespace: true,
+  useShortDoctype: true,
+  minifyCSS: true,
 };
 
 export const createRollupInputOptions = (production: boolean) =>
@@ -121,7 +123,7 @@ export const build = async () => {
   const { code: outputMinified } = await minify(outputMangled, terserOptions);
 
   const outPutReMangled = outputMinified!.replace(
-    new RegExp(`[^\w](` + propertiesToMangle.join("|") + `)[^\w]`, "g"),
+    new RegExp(`[{\,\.}](` + propertiesToMangle.join("|") + `)[^\w]`, "g"),
     (x, term) =>
       x.replace(term, (propertiesToMangle.indexOf(term) + 10).toString(36))
   );
