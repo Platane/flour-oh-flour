@@ -1,4 +1,3 @@
-import "./polyfill";
 import "./canvas";
 
 import { render } from "./renderer/render";
