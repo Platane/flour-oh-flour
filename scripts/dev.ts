@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import * as url from "url";
 import * as path from "path";
 import * as http from "http";
 import { watch, RollupWatchOptions } from "rollup";
@@ -42,7 +43,9 @@ export const dev = async () => {
     try {
       let filePath;
 
-      if (req.url === "/") {
+      const { pathname } = url.parse(req.url!);
+
+      if (pathname! === "/") {
         filePath = path.resolve(__dirname, "..", "src", "index.html");
       } else {
         await promise;
@@ -50,7 +53,7 @@ export const dev = async () => {
           __dirname,
           "..",
           "dist",
-          req.url!.split("/dist/").slice(-1)[0]
+          pathname!.split("/dist/").slice(-1)[0]
         );
       }
 
