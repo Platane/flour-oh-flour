@@ -295,7 +295,7 @@ export const createWindmill = () => {
   return toBuffer(faces);
 };
 
-const toBuffer = (faces: { vertices: vec3[]; color: number[] }[]) => {
+export const toBuffer = (faces: { vertices: vec3[]; color: number[] }[]) => {
   const colors: number[][] = [];
   const vertices: vec3[] = [];
 
@@ -308,16 +308,16 @@ const toBuffer = (faces: { vertices: vec3[]; color: number[] }[]) => {
 
   const fColors = Float32Array.from(colors.flat());
   const fVertices = Float32Array.from((vertices as number[][]).flat());
-  const findexes = Uint16Array.from(
+  const fIndexes = Uint16Array.from(
     { length: fVertices.length / 3 },
     (_, i) => i
   );
-  const fNormals = getFlatShadingNormals(findexes, fVertices);
+  const fNormals = getFlatShadingNormals(fIndexes, fVertices);
 
   return {
     vertices: fVertices,
     normals: fNormals,
-    indexes: findexes,
+    indexes: fIndexes,
     colors: fColors,
   };
 };

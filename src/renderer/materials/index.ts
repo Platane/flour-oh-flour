@@ -22,12 +22,9 @@ const worldInverseTransposedMatrixLocation = getUniformLocation(
 const s = Date.now();
 
 const gIndexBuffer = gl.createBuffer();
+export const gIndexes = new Uint16Array(3 * 1000).map((_, i) => i);
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gIndexBuffer);
-gl.bufferData(
-  gl.ELEMENT_ARRAY_BUFFER,
-  new Uint16Array(3 * 20 * 1000).map((_, i) => i),
-  gl.STATIC_DRAW
-);
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, gIndexes, gl.STATIC_DRAW);
 
 export const createMaterial = () => {
   const positionBuffer = gl.createBuffer();
@@ -52,8 +49,8 @@ export const createMaterial = () => {
     n = positions.length / 3;
 
     if (process.env.NODE_ENV !== "production") {
-      console.log("nfaces:", n / 3);
-      if (n / 3 > 20 * 1000) throw new Error("index buffer too short");
+      // console.log("nfaces:", n / 3);
+      if (n > gIndexes.length) throw new Error("index buffer too short");
     }
   };
 

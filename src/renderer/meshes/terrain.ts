@@ -1,4 +1,4 @@
-import { createMaterial } from "../materials";
+import { createMaterial, gIndexes } from "../materials";
 import { getFlatShadingNormals } from "../utils/flatShading";
 import { generatePerlinNoise } from "../../math/generatePerlinNoise";
 import { vec2 } from "gl-matrix";
@@ -57,10 +57,11 @@ const fColors = Float32Array.from(
     })
     .flat(2)
 );
-const findexes = Uint16Array.from(
-  indexes.map((_, i) => [i * 3 + 0, i * 3 + 1, i * 3 + 2]).flat() as number[]
+
+const fNormals = getFlatShadingNormals(
+  gIndexes.subarray(0, fVertices.length / 3),
+  fVertices
 );
-const fNormals = getFlatShadingNormals(findexes, fVertices);
 
 const m = createMaterial();
 

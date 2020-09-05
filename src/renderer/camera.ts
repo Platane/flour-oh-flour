@@ -3,12 +3,12 @@ import { canvas } from "../canvas";
 import { clamp } from "../math/utils";
 
 const perspectiveMatrix = new Float32Array(4 * 4);
-const lookAtMatrix = new Float32Array(4 * 4);
+export const lookAtMatrix = new Float32Array(4 * 4);
 
 const fovx = Math.PI / 3;
 const aspect = window.innerWidth / window.innerHeight;
-const near = 0.01;
-const far = 12;
+const near = 0.005;
+const far = 20;
 mat4.perspective(perspectiveMatrix, fovx, aspect, near, far);
 
 export const worldMatrix = new Float32Array(4 * 4);
