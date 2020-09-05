@@ -25,7 +25,7 @@ const gIndexBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gIndexBuffer);
 gl.bufferData(
   gl.ELEMENT_ARRAY_BUFFER,
-  new Uint16Array(3 * 1000_000).map((_, i) => i),
+  new Uint16Array(3 * 20 * 1000).map((_, i) => i),
   gl.STATIC_DRAW
 );
 
@@ -52,7 +52,8 @@ export const createMaterial = () => {
     n = positions.length / 3;
 
     if (process.env.NODE_ENV !== "production") {
-      if (n / 3 > 1000_000) throw new Error("index buffer too short");
+      console.log("nfaces:", n / 3);
+      if (n / 3 > 20 * 1000) throw new Error("index buffer too short");
     }
   };
 
