@@ -71,7 +71,7 @@ export const raycast = (x: number, y: number, vertices: number[]) => {
           bestP[0] = p[0];
           bestP[1] = p[1];
           bestP[2] = p[2];
-          bestI = i;
+          bestI = i / 9;
         }
       }
     }

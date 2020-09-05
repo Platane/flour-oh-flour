@@ -1,6 +1,7 @@
-import { mat4, vec3 } from "gl-matrix";
+import { mat4, vec3, vec2 } from "gl-matrix";
 import { canvas } from "../canvas";
 import { clamp } from "../math/utils";
+import { Handler } from "../controls-type";
 
 export const perspectiveMatrix = new Float32Array(4 * 4);
 export const lookAtMatrix = new Float32Array(4 * 4);
@@ -70,25 +71,13 @@ const rotateEnd = () => {
   px = null;
 };
 
-canvas.addEventListener("mousedown", (event) =>
-  rotateStart(event.pageX, event.pageY)
-);
-canvas.addEventListener("mousemove", (event) =>
-  rotateMove(event.pageX, event.pageY)
-);
-canvas.addEventListener("mouseup", rotateEnd);
-
-canvas.addEventListener(
-  "touchstart",
-  (event) => rotateStart(event.touches[0].pageX, event.touches[0].pageY),
-  { passive: true }
-);
-canvas.addEventListener(
-  "touchmove",
-  (event) => rotateMove(event.touches[0].pageX, event.touches[0].pageY),
-  { passive: true }
-);
-canvas.addEventListener("touchend", rotateEnd, { passive: true });
+export const onTouchStart: Handler = ([{ pageX, pageY }]) => {
+  rotateStart(pageX, pageY);
+};
+export const onTouchMove: Handler = ([{ pageX, pageY }]) => {
+  rotateMove(pageX, pageY);
+};
+export const onTouchEnd: Handler = rotateEnd;
 
 canvas.addEventListener(
   "wheel",

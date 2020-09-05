@@ -1,17 +1,20 @@
 import "./mock-random";
 import "./canvas";
+import "./controls";
+import "./ui";
 
 import { render } from "./renderer/render";
 import { vec2 } from "gl-matrix";
 import { getVoronoiTesselation } from "./math/getVoronoiTesselation";
 import { update as updateCursor } from "./renderer/meshes/cursor";
-import { fVertices } from "./renderer/meshes/terrain";
+import { staticVertices } from "./renderer/meshes/terrain";
 import { raycast } from "./renderer/raycast";
 import { createCanvas } from "./debugCanvas";
+import { stepWorld } from "./logic";
 
 const loop = () => {
   render();
-
+  stepWorld();
   requestAnimationFrame(loop);
 };
 
@@ -76,7 +79,7 @@ document.body.addEventListener(
     const x = (pageX / window.innerWidth) * 2 - 1;
     const y = -((pageY / window.innerHeight) * 2 - 1);
 
-    const u = raycast(x, y, fVertices as any);
+    const u = raycast(x, y, staticVertices);
 
     updateCursor(u ? u.p : null);
   },
@@ -84,7 +87,7 @@ document.body.addEventListener(
 );
 
 // raycaster test
-{
+if (false) {
   let k = 0;
   const l = 8;
   const w = Math.ceil(window.innerWidth / l);
@@ -102,7 +105,7 @@ document.body.addEventListener(
         const x = (((sx + 0.5) * l) / window.innerWidth) * 2 - 1;
         const y = -((((sy + 0.5) * l) / window.innerHeight) * 2 - 1);
 
-        const u = raycast(x, y, fVertices as any);
+        const u = raycast(x, y, staticVertices);
 
         ctx.fillStyle = u
           ? `hsl(0,40%,${((u.t - 1) / 7) * 100}%)`
