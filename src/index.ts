@@ -78,7 +78,7 @@ document.body.addEventListener(
 
     const u = raycast(x, y, fVertices as any);
 
-    updateCursor(u?.p || null);
+    updateCursor(u ? u.p : null);
   },
   { passive: true }
 );
