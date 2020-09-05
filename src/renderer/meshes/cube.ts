@@ -72,6 +72,6 @@ const colors = Float32Array.from([
 
 const m = createMaterial();
 const normals = getFlatShadingNormals(indexes, vertices);
-m.updateGeometry(indexes, colors, vertices, normals);
+m.updateGeometry(colors, vertices, normals);
 
 export const draw = m.draw;

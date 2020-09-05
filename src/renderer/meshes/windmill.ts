@@ -326,6 +326,6 @@ const m = createMaterial();
 
 const wm = createWindmill();
 
-m.updateGeometry(wm.indexes, wm.colors, wm.vertices, wm.normals);
+m.updateGeometry(wm.colors, wm.vertices, wm.normals);
 
 export const draw = m.draw;

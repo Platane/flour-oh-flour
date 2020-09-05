@@ -20,7 +20,7 @@ const h = (x: number, y: number) => {
   return h;
 };
 
-const points = Array.from({ length: 2000 }, () => {
+const points = Array.from({ length: 200 }, () => {
   let x = 1;
   let y = 1;
   while (x * x + y * y > 1) {
@@ -64,6 +64,6 @@ const fNormals = getFlatShadingNormals(findexes, fVertices);
 
 const m = createMaterial();
 
-m.updateGeometry(findexes, fColors, fVertices, fNormals);
+m.updateGeometry(fColors, fVertices, fNormals);
 
 export const draw = m.draw;
