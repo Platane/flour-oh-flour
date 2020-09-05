@@ -99,8 +99,8 @@ document.body.addEventListener(
         const sx = k % w;
         const sy = Math.floor(k / w);
 
-        const x = ((sx + 0.5) / w) * 2 - 1;
-        const y = -(((sy + 0.5) / h) * 2 - 1);
+        const x = (((sx + 0.5) * l) / window.innerWidth) * 2 - 1;
+        const y = -((((sy + 0.5) * l) / window.innerHeight) * 2 - 1);
 
         const u = raycast(x, y, fVertices as any);
 
