@@ -82,17 +82,6 @@ export const rollupOutputOptions: RollupOptions = {
   },
 };
 
-const termToMangle = [
-  //
-  "aVertexColor",
-  "aVertexNormal",
-  "aVertexPosition",
-  "uWorldMatrix",
-  "uWorldInverseTransposedMatrix",
-  "uTime",
-  "vNormal",
-  "vColor",
-];
 const propertiesToMangle = [
   //
   "updateGeometry",
@@ -110,20 +99,37 @@ const propertiesToMangle = [
 ];
 
 export const build = async () => {
+  // bundle with rollup
   const bundle = await rollup(createRollupInputOptions(true));
-
-  const {
-    output: [{ code: outputBundled }],
+  let {
+    output: [{ code }],
   } = await bundle.generate(rollupOutputOptions);
 
-  const outputMangled = outputBundled.replace(
-    new RegExp("(" + termToMangle.join("|") + ")", "g"),
-    (term) => (termToMangle.indexOf(term) + 10).toString(36)
-  );
+  // replace gl var names ( uniform / attribute / varying )
+  {
+    const glVarNames = [
+      ...Array.from(code.matchAll(/(attribute|uniform) \w+ (\w+);/g)).map(
+        ([_, __, name]) => name
+      ),
+      ...Array.from(code.matchAll(/varying \w+ \w+ (\w+);/g)).map(
+        ([_, name]) => name
+      ),
+    ];
 
-  const { code: outputMinified } = await minify(outputMangled, terserOptions);
+    code = code.replace(
+      new RegExp("(" + glVarNames.join("|") + ")", "g"),
+      (name) => (glVarNames.indexOf(name) + 10).toString(36)
+    );
+  }
 
-  const outPutReMangled = outputMinified!.replace(
+  // minify with terser
+  {
+    const out = await minify(code, terserOptions);
+    code = out.code!;
+  }
+
+  // replace own properties name
+  code = code.replace(
     new RegExp(`[{\,\.}](` + propertiesToMangle.join("|") + `)[^\w]`, "g"),
     (x, term) =>
       x.replace(term, (propertiesToMangle.indexOf(term) + 10).toString(36))
@@ -136,7 +142,7 @@ export const build = async () => {
   const minifiedHtmlContent = minifyHtml(
     htmlContent.replace(
       '<script src="../dist/bundle.js"></script>',
-      `<script>${outPutReMangled!}</script>`
+      `<script>${code!}</script>`
     ),
     minifyHtmlOptions
   );
