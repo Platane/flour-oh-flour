@@ -1,7 +1,7 @@
 export const canvas: HTMLCanvasElement = document.querySelector("canvas")!;
 canvas.width = window.innerWidth * window.devicePixelRatio;
 canvas.height = window.innerHeight * window.devicePixelRatio;
-
+canvas.style.opacity = "0.6";
 // const p = generatePerlinNoise(canvas.width, canvas.height, 260);
 // const l = 2;
 // for (let x = 0; x < canvas.width / l; x++)

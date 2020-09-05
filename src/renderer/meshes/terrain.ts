@@ -35,7 +35,7 @@ const indexes = getDelaunayTriangulation(points as vec2[]);
 
 const vertices = points.map(([x, z]) => [x, h(x, z), z]);
 
-const fVertices = Float32Array.from(
+export const fVertices = Float32Array.from(
   indexes
     .map(([a, b, c]) => {
       const A = vertices[a];

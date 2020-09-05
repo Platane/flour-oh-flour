@@ -3,12 +3,12 @@ import { getFlatShadingNormals } from "../utils/flatShading";
 import { createMaterial } from "../materials";
 import { toBuffer } from "./windmill";
 import { worldMatrix, lookAtMatrix } from "../camera";
+import { z } from "../../constant";
 
 const SIZE = 1;
 
 const m: mat3 = [] as any;
 
-const z: vec3 = [0, 0, 1];
 const n: vec3 = [0, 0, 0];
 
 // prettier-ignore

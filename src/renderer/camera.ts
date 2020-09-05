@@ -2,8 +2,9 @@ import { mat4, vec3 } from "gl-matrix";
 import { canvas } from "../canvas";
 import { clamp } from "../math/utils";
 
-const perspectiveMatrix = new Float32Array(4 * 4);
+export const perspectiveMatrix = new Float32Array(4 * 4);
 export const lookAtMatrix = new Float32Array(4 * 4);
+export const worldMatrix = new Float32Array(4 * 4);
 
 const fovx = Math.PI / 3;
 const aspect = window.innerWidth / window.innerHeight;
@@ -11,17 +12,16 @@ const near = 0.005;
 const far = 20;
 mat4.perspective(perspectiveMatrix, fovx, aspect, near, far);
 
-export const worldMatrix = new Float32Array(4 * 4);
 export const worlInverseTransposedMatrix = new Float32Array(4 * 4);
 
 let phi = 1;
-let theta = 1;
+let theta = 0;
 let zoom = 16;
 
 const rotationSpeed = 3;
 const up: vec3 = [0, 1, 0];
 const center: vec3 = [0, 0, 0];
-const eye: vec3 = [0, 0, 1];
+export const eye: vec3 = [0, 0, 1];
 
 const update = () => {
   const radius = 0.1 + zoom * 0.5;
