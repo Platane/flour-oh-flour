@@ -75,7 +75,7 @@ export const raycast = (x: number, y: number, vertices: number[]) => {
         }
       }
     }
-
-    if (bestI >= 0) return { p: bestP, t: bestT, i: bestI };
   }
+
+  if (bestI >= 0) return { p: bestP, t: bestT, i: bestI };
 };

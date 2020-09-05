@@ -106,7 +106,7 @@ document.body.addEventListener(
 
         ctx.fillStyle = u
           ? `hsl(0,40%,${((u.t - 1) / 7) * 100}%)`
-          : `hsl(0,0%,${Math.random() * 4 + 90}%)`;
+          : `hsl(0,0%,${Math.random() * 4 + 80}%)`;
         ctx.fillRect(sx * l, sy * l, l, l);
 
         k++;
