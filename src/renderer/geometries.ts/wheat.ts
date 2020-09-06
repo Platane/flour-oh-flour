@@ -3,6 +3,7 @@ import { createMaterial } from "../materials";
 import { lookAtMatrix } from "../camera";
 import { z } from "../../constant";
 import { toBuffer } from "../meshes/windmill";
+import { faceToVertices } from "../utils/faceToVertices";
 
 const SIZE = 1;
 
@@ -29,8 +30,12 @@ const kernel = [
   [  1.3 , 1.25 ],
 ]
 
+const nGrain = 8;
+
+export const getRequiredFaceNumber = () => 1 + nGrain * (kernel.length - 2);
+
 export const createWheat = (origin: vec3, v: vec3, growth: number) => {
-  const faces: { vertices: vec3[]; color: number[] }[] = [];
+  const faces: vec3[][] = [];
 
   mat3.fromMat4(m, lookAtMatrix);
   mat3.invert(m, m);
@@ -44,11 +49,9 @@ export const createWheat = (origin: vec3, v: vec3, growth: number) => {
   const branchBase = 0.04;
   const grainScale = 0.3;
 
-  const nGrain = 8;
-
   // branch
 
-  const vertices = [
+  const branchFace = [
     vec3.scale([] as any, n, -branchBase),
     vec3.scale([] as any, n, branchBase),
   ].map((out: any) => {
@@ -56,14 +59,13 @@ export const createWheat = (origin: vec3, v: vec3, growth: number) => {
 
     vec3.add(out, out, origin);
 
-    return out;
+    return out as vec3;
   });
 
-  vertices.push(
+  branchFace.push(
     vec3.scale([] as any, v, branchSize + (nGrain * grainScale) / 2)
   );
-
-  faces.push({ vertices, color });
+  faces.push(branchFace);
 
   // grains
   for (let k = nGrain; k--; ) {
@@ -87,33 +89,37 @@ export const createWheat = (origin: vec3, v: vec3, growth: number) => {
 
     if (uy === 1) vertices.reverse();
 
-    faces.push({ vertices, color });
+    faces.push(vertices);
   }
 
-  return toBuffer(faces);
+  const vertices: number[] = [];
+  for (const face of faces) vertices.push(...faceToVertices(face as any));
+
+  const colors: number[] = [];
+  for (let i = vertices.length / 3; i--; ) colors.push(...color);
+
+  return { vertices, colors };
 };
 
-const material = createMaterial();
+// export const draw = () => {
+//   const a = Date.now() * 0.001;
+//   const v: vec3 = [0, Math.sin(a), Math.cos(a)];
 
-export const draw = () => {
-  const a = Date.now() * 0.001;
-  const v: vec3 = [0, Math.sin(a), Math.cos(a)];
+//   v[0] = 0.5;
+//   v[1] = 1;
+//   v[2] = 0;
 
-  v[0] = 0.5;
-  v[1] = 1;
-  v[2] = 0;
+//   vec3.normalize(v, v);
 
-  vec3.normalize(v, v);
+//   const wm = createWheat([0.0, 0, 0.0], v, 0);
 
-  const wm = createWheat([0.0, 0, 0.0], v, 0);
+//   const normals = new Float32Array(wm.vertices.length);
+//   for (let i = wm.vertices.length / 3; i--; ) {
+//     normals[i * 3 + 0] = 0;
+//     normals[i * 3 + 1] = 0;
+//     normals[i * 3 + 2] = 1;
+//   }
 
-  const normals = new Float32Array(wm.vertices.length);
-  for (let i = wm.vertices.length / 3; i--; ) {
-    normals[i * 3 + 0] = 0;
-    normals[i * 3 + 1] = 0;
-    normals[i * 3 + 2] = 1;
-  }
-
-  material.updateGeometry(wm.colors, wm.vertices, normals);
-  material.draw();
-};
+//   material.updateGeometry(wm.colors, wm.vertices, normals);
+//   material.draw();
+// };

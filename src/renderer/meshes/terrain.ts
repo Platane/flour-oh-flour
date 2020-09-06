@@ -1,11 +1,12 @@
 import { createMaterial, gIndexes } from "../materials";
 import { getFlatShadingNormals } from "../utils/flatShading";
 import { generatePerlinNoise } from "../../math/generatePerlinNoise";
-import { vec2 } from "gl-matrix";
+import { vec2, mat3, vec3 } from "gl-matrix";
 import { getDelaunayTriangulation } from "../../math/getDelaunayTriangulation";
-import { faceToVertices } from "../utils/faceToTriangles";
+import { faceToVertices } from "../utils/faceToVertices";
 import { createWindmill } from "../geometries.ts/windmill";
 import { cells } from "../../logic";
+import { zero, tmp0 } from "../../constant";
 
 const p0 = generatePerlinNoise(3, 3, 0.4);
 const p1 = generatePerlinNoise(3, 3, 0.7);
@@ -95,6 +96,7 @@ cellFaces.forEach((face, j) => {
   cells.push({ growth: 0, area: 1 } as any);
 });
 
+const p = tmp0;
 for (let u = 5; u--; ) {
   let x = 1;
   let y = 1;
@@ -103,12 +105,25 @@ for (let u = 5; u--; ) {
     y = Math.random() * 2 - 1;
   }
 
-  const s = 0.035;
-  const o = [x, h(x, y), y];
-
   const { vertices, colors } = createWindmill();
 
-  staticVertices.push(...vertices.map((x, i) => x * s + o[i % 3]));
+  const s = 0.035;
+  const o = [x, h(x, y), y];
+  const a = Math.random() * Math.PI * 2;
+
+  for (let i = 0; i < vertices.length; i += 3) {
+    p[0] = vertices[i + 0];
+    p[1] = vertices[i + 1];
+    p[2] = vertices[i + 2];
+
+    vec3.rotateY(p, p, zero, a);
+
+    vertices[i + 0] = p[0] * s + o[0];
+    vertices[i + 1] = p[1] * s + o[1];
+    vertices[i + 2] = p[2] * s + o[2];
+  }
+
+  staticVertices.push(...vertices);
   staticColors.push(...colors);
 }
 

@@ -1,5 +1,5 @@
 import { vec3 } from "gl-matrix";
-import { faceToVertices } from "../utils/faceToTriangles";
+import { faceToVertices } from "../utils/faceToVertices";
 
 export const createWindmill = () => {
   const vertices: number[] = [];
@@ -13,6 +13,7 @@ export const createWindmill = () => {
   const footTopRadius = 0.5;
   const footBottomRadius = 0.95;
   const footHeight = 0.6;
+  const baseExtensionHeight = 1.85;
 
   const roofRadius = 1.32;
   const roofHeight = 0.68;
@@ -60,10 +61,10 @@ export const createWindmill = () => {
 
       // prettier-ignore
       [
-        [ footBottomRadius * bx,  0, footBottomRadius * by],
-        [ footBottomRadius * ax,  0, footBottomRadius * ay],
-        [ footBottomRadius * ax, -1.2, footBottomRadius * ay],
-        [ footBottomRadius * bx, -1.2, footBottomRadius * by],
+        [ footBottomRadius * bx,  0                  , footBottomRadius * by],
+        [ footBottomRadius * ax,  0                  , footBottomRadius * ay],
+        [ footBottomRadius * ax, -baseExtensionHeight, footBottomRadius * ay],
+        [ footBottomRadius * bx, -baseExtensionHeight, footBottomRadius * by],
       ],
 
       // prettier-ignore
