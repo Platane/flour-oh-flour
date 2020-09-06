@@ -1,14 +1,13 @@
 import { createMaterial, gIndexes } from "../materials";
 import { getFlatShadingNormals } from "../utils/flatShading";
 import { generatePerlinNoise } from "../../math/generatePerlinNoise";
-import { vec2, mat3, vec3 } from "gl-matrix";
+import { vec2, vec3 } from "gl-matrix";
 import { getDelaunayTriangulation } from "../../math/getDelaunayTriangulation";
 import { faceToVertices } from "../utils/faceToVertices";
 import { createWindmill } from "../geometries.ts/windmill";
 import { cells, maxGrowth, date } from "../../logic";
 import { zero, tmp0 } from "../../constant";
 import { createField } from "../geometries.ts/field";
-import { compute as computeWind } from "../geometries.ts/wind";
 
 const p0 = generatePerlinNoise(3, 3, 0.4);
 const p1 = generatePerlinNoise(3, 3, 0.7);
