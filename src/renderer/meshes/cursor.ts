@@ -1,5 +1,4 @@
 import { createMaterial } from "../materials";
-import { getFlatShadingNormals } from "../utils/flatShading";
 import { vec3 } from "gl-matrix";
 
 // prettier-ignore

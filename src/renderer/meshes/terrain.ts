@@ -5,9 +5,10 @@ import { vec2, mat3, vec3 } from "gl-matrix";
 import { getDelaunayTriangulation } from "../../math/getDelaunayTriangulation";
 import { faceToVertices } from "../utils/faceToVertices";
 import { createWindmill } from "../geometries.ts/windmill";
-import { cells, maxGrowth } from "../../logic";
+import { cells, maxGrowth, date } from "../../logic";
 import { zero, tmp0 } from "../../constant";
 import { createField } from "../geometries.ts/field";
+import { compute as computeWind } from "../geometries.ts/wind";
 
 const p0 = generatePerlinNoise(3, 3, 0.4);
 const p1 = generatePerlinNoise(3, 3, 0.7);
@@ -62,7 +63,7 @@ const cellFaces = [
     // const a = i / arr.length + Math.random() * 0.2;
     const a = i / arr.length;
 
-    const r = 0.4 + Math.random() * 0.2;
+    const r = 0.9 + Math.random() * 0.2;
 
     const o: vec3 = [
       //
@@ -97,6 +98,7 @@ cellFaces.forEach((face, j) => {
   cells.push({ growth: maxGrowth * 0.9, area: 1, type: "growing" } as any);
 });
 
+// add windmills
 for (let u = 5; u--; ) {
   let x = 1;
   let y = 1;
@@ -160,6 +162,7 @@ const fieldsUpdates = cellFaces.map((cell, i) =>
 // );
 
 export const draw = () => {
+  // update dynamic buffers
   dynamicVertices.length = 0;
   dynamicNormals.length = 0;
   dynamicColors.length = 0;
@@ -177,6 +180,7 @@ export const draw = () => {
     new Float32Array(dynamicNormals)
   );
 
+  // draw
   staticMaterial.draw();
   dynamicMaterial.draw();
 };

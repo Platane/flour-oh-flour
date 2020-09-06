@@ -2,6 +2,7 @@ import { canvas } from "./canvas";
 import { onTouchStart, onTouchMove, onTouchEnd } from "./renderer/camera";
 import { onTap } from "./action";
 import { Handler } from "./controls-type";
+import { onHover } from "./hover";
 
 let downTimeStamp = 0;
 let t0: { pageX: number; pageY: number }[];
@@ -12,6 +13,7 @@ const onStart: Handler = (t) => {
 };
 const onMove: Handler = (t) => {
   onTouchMove(t);
+  onHover(t);
 };
 const onEnd: Handler = (t) => {
   onTouchEnd(t);

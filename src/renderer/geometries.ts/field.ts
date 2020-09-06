@@ -5,9 +5,10 @@ import { cells, maxTic } from "../../logic";
 import { clamp } from "../../math/utils";
 import { faceToVertices } from "../utils/faceToVertices";
 import { hintColor } from "../colors";
+import { getWindDirection } from "./wind";
 
-const wheatSpace = 0.17;
-const lineSpace = 0.16;
+const wheatSpace = 0.07;
+const lineSpace = 0.06;
 
 export const createField = (cell: vec3[], direction: vec3, i: number) => {
   // compute the center
@@ -86,7 +87,7 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
     const colors: number[] = [];
 
     for (const o of wheatOrigins) {
-      const m = createWheat(o, [0, 1, 0], cells[i].growth);
+      const m = createWheat(o, getWindDirection(tmp2, o), cells[i].growth);
 
       vertices.push(...m.vertices);
       normals.push(...m.normals);
