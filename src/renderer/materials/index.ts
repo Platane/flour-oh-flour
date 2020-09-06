@@ -22,7 +22,7 @@ const worldInverseTransposedMatrixLocation = getUniformLocation(
 const s = Date.now();
 
 const gIndexBuffer = gl.createBuffer();
-export const gIndexes = new Uint16Array(10 * 1000).map((_, i) => i);
+export const gIndexes = new Uint16Array(50 * 1000).map((_, i) => i);
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gIndexBuffer);
 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, gIndexes, gl.STATIC_DRAW);
 

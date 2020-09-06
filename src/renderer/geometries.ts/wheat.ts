@@ -1,15 +1,12 @@
-import { vec3, mat3 } from "gl-matrix";
-import { createMaterial } from "../materials";
-import { lookAtMatrix } from "../camera";
-import { z } from "../../constant";
-import { toBuffer } from "../meshes/windmill";
+import { vec3 } from "gl-matrix";
+import { lookAtMatrix3Inv } from "../camera";
+import { z, tmp0 } from "../../constant";
 import { faceToVertices } from "../utils/faceToVertices";
 
-const SIZE = 1;
+const SIZE = 0.03;
 
-const m: mat3 = [] as any;
-
-const n: vec3 = [0, 0, 0];
+// const n: vec3 = [] as any;
+const n = tmp0;
 
 // prettier-ignore
 const kernel = [
@@ -30,24 +27,21 @@ const kernel = [
   [  1.3 , 1.25 ],
 ]
 
-const nGrain = 8;
+const nGrain = 6;
 
 export const getRequiredFaceNumber = () => 1 + nGrain * (kernel.length - 2);
 
 export const createWheat = (origin: vec3, v: vec3, growth: number) => {
   const faces: vec3[][] = [];
 
-  mat3.fromMat4(m, lookAtMatrix);
-  mat3.invert(m, m);
-
   vec3.cross(n, v, z);
   vec3.normalize(n, n);
 
   const color = [1, 1, 0.3];
 
-  const branchSize = 1.2;
-  const branchBase = 0.04;
-  const grainScale = 0.3;
+  const branchSize = SIZE * 1.2;
+  const branchBase = SIZE * 0.1;
+  const grainScale = SIZE * 0.3;
 
   // branch
 
@@ -55,16 +49,19 @@ export const createWheat = (origin: vec3, v: vec3, growth: number) => {
     vec3.scale([] as any, n, -branchBase),
     vec3.scale([] as any, n, branchBase),
   ].map((out: any) => {
-    vec3.transformMat3(out, out, m);
+    vec3.transformMat3(out, out, lookAtMatrix3Inv);
 
     vec3.add(out, out, origin);
+    out[1] -= branchSize * 0.04;
 
     return out as vec3;
   });
 
-  branchFace.push(
-    vec3.scale([] as any, v, branchSize + (nGrain * grainScale) / 2)
-  );
+  const out: vec3 = [] as any;
+  vec3.scale(out, v, branchSize + (nGrain * grainScale) / 2);
+  vec3.add(out, out, origin);
+  branchFace.push(out);
+
   faces.push(branchFace);
 
   // grains
@@ -79,7 +76,7 @@ export const createWheat = (origin: vec3, v: vec3, growth: number) => {
         0,
       ];
 
-      vec3.transformMat3(out, out, m);
+      vec3.transformMat3(out, out, lookAtMatrix3Inv);
 
       vec3.add(out, out, origin);
       vec3.scaleAndAdd(out, out, v, branchSize + (dx + uy * 0.1) * grainScale);
@@ -98,7 +95,14 @@ export const createWheat = (origin: vec3, v: vec3, growth: number) => {
   const colors: number[] = [];
   for (let i = vertices.length / 3; i--; ) colors.push(...color);
 
-  return { vertices, colors };
+  const normals = [];
+  for (let i = vertices.length / 3; i--; ) {
+    normals[i * 3 + 0] = 0;
+    normals[i * 3 + 1] = 0;
+    normals[i * 3 + 2] = 1;
+  }
+
+  return { vertices, colors, normals };
 };
 
 // export const draw = () => {

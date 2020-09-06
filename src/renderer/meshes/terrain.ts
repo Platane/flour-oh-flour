@@ -7,6 +7,7 @@ import { faceToVertices } from "../utils/faceToVertices";
 import { createWindmill } from "../geometries.ts/windmill";
 import { cells } from "../../logic";
 import { zero, tmp0 } from "../../constant";
+import { createField } from "../geometries.ts/field";
 
 const p0 = generatePerlinNoise(3, 3, 0.4);
 const p1 = generatePerlinNoise(3, 3, 0.7);
@@ -58,16 +59,23 @@ for (const [a, b, c] of indexes) {
 
 const cellFaces = [
   Array.from({ length: 5 }).map((_, i, arr) => {
+    // const a = i / arr.length + Math.random() * 0.2;
     const a = i / arr.length;
 
-    const r = 0.4;
+    const r = 0.4 + Math.random() * 0.2;
 
-    return [
+    const o: vec3 = [
       //
       Math.sin(a * Math.PI * 2) * r,
-      1,
+      0,
       Math.cos(a * Math.PI * 2) * r,
     ];
+
+    vec3.rotateZ(o, o, zero, 0.3);
+    vec3.rotateX(o, o, zero, 0.27);
+    o[1] += 0.6;
+
+    return o;
   }),
 ];
 
@@ -82,13 +90,6 @@ cellFaces.forEach((face, j) => {
   for (let i = vs.length / 9; i--; )
     activeFaces[staticVertices.length / 9 + i] = j;
 
-  // cellFacesIndexes.push(
-  //   Array.from(
-  //     { length: vs.length / 9 },
-  //     (_, i) => staticVertices.length / 9 + i
-  //   )
-  // );
-
   staticVertices.push(...vs);
   for (let i = vs.length / 3; i--; )
     staticColors.push(90 / 255, 92 / 255, 31 / 255);
@@ -96,7 +97,6 @@ cellFaces.forEach((face, j) => {
   cells.push({ growth: 0, area: 1 } as any);
 });
 
-const p = tmp0;
 for (let u = 5; u--; ) {
   let x = 1;
   let y = 1;
@@ -112,15 +112,15 @@ for (let u = 5; u--; ) {
   const a = Math.random() * Math.PI * 2;
 
   for (let i = 0; i < vertices.length; i += 3) {
-    p[0] = vertices[i + 0];
-    p[1] = vertices[i + 1];
-    p[2] = vertices[i + 2];
+    tmp0[0] = vertices[i + 0];
+    tmp0[1] = vertices[i + 1];
+    tmp0[2] = vertices[i + 2];
 
-    vec3.rotateY(p, p, zero, a);
+    vec3.rotateY(tmp0, tmp0, zero, a);
 
-    vertices[i + 0] = p[0] * s + o[0];
-    vertices[i + 1] = p[1] * s + o[1];
-    vertices[i + 2] = p[2] * s + o[2];
+    vertices[i + 0] = tmp0[0] * s + o[0];
+    vertices[i + 1] = tmp0[1] * s + o[1];
+    vertices[i + 2] = tmp0[2] * s + o[2];
   }
 
   staticVertices.push(...vertices);
@@ -143,7 +143,40 @@ staticMaterial.updateGeometry(
 //@ts-ignore
 staticColors = null;
 
+export const dynamicVertices: number[] = [];
+export const dynamicNormals: number[] = [];
+export const dynamicColors: number[] = [];
+
+const direction: vec3 = [0, 0, 1];
+
+const fieldsUpdates = cellFaces.map((cell, i) =>
+  createField(cell as any, direction, i)
+);
+
+fieldsUpdates.push(
+  ...indexes.map((ii) =>
+    createField(ii.map((i) => points3d[i]) as vec3[], direction, 0)
+  )
+);
+
 export const draw = () => {
+  dynamicVertices.length = 0;
+  dynamicNormals.length = 0;
+  dynamicColors.length = 0;
+
+  for (const update of fieldsUpdates) {
+    const { vertices, normals, colors } = update();
+    dynamicVertices.push(...vertices);
+    dynamicNormals.push(...normals);
+    dynamicColors.push(...colors);
+  }
+
+  dynamicMaterial.updateGeometry(
+    new Float32Array(dynamicColors),
+    new Float32Array(dynamicVertices),
+    new Float32Array(dynamicNormals)
+  );
+
   staticMaterial.draw();
   dynamicMaterial.draw();
 };
