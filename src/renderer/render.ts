@@ -1,8 +1,6 @@
 import { gl } from "../canvas";
 import { draw as drawCube } from "./meshes/cube";
 import { draw as drawTerrain } from "./meshes/terrain";
-import { draw as drawWindmill } from "./meshes/windmill";
-import { draw as drawWheat } from "./meshes/wheat";
 import { draw as drawCursor } from "./meshes/cursor";
 
 gl.clearColor(0, 0, 0, 0);
@@ -21,9 +19,6 @@ gl.depthFunc(gl.LESS);
 export const render = () => {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  // drawCube();
-  // drawWheat();
   drawCursor();
   drawTerrain();
-  // drawWindmill();
 };

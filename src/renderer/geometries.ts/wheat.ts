@@ -102,7 +102,7 @@ export const createWheat = (origin: vec3, v: vec3, growth: number) => {
   for (const face of faces) vertices.push(...faceToVertices(face as any));
 
   const colors: number[] = [];
-  for (let i = vertices.length / 3; i--; ) colors.push(...color);
+  for (let i = vertices.length / 3; i--; ) colors.push(...(color as any));
 
   const normals = [];
   for (let i = vertices.length / 3; i--; ) {
