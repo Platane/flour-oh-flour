@@ -1,38 +1,35 @@
 import { vec3 } from "gl-matrix";
 import { createWheat } from "./wheat";
 import { tmp0, tmp1, tmp2, tmp3, tmp4 } from "../../constant";
-import { cells } from "../../logic";
+import { cells, maxTic } from "../../logic";
+import { clamp } from "../../math/utils";
+import { faceToVertices } from "../utils/faceToVertices";
+import { hintColor } from "../colors";
 
-const n: vec3 = [] as any;
-const u: vec3 = [] as any;
-const v: vec3 = [] as any;
-
-const wheatSpace = 0.07;
-const lineSpace = 0.06;
+const wheatSpace = 0.17;
+const lineSpace = 0.16;
 
 export const createField = (cell: vec3[], direction: vec3, i: number) => {
   // compute the center
-  tmp0[0] = 0;
-  tmp0[1] = 0;
-  tmp0[2] = 0;
+  const c: vec3 = [0, 0, 0];
 
   for (const p of cell) {
-    tmp0[0] += p[0] / cell.length;
-    tmp0[1] += p[1] / cell.length;
-    tmp0[2] += p[2] / cell.length;
+    c[0] += p[0] / cell.length;
+    c[1] += p[1] / cell.length;
+    c[2] += p[2] / cell.length;
   }
 
   // compute bounding sphere
   let r = Infinity;
   for (const p of cell) {
-    const l = vec3.distance(p, tmp0);
+    const l = vec3.distance(p, c);
     if (l < r) r = l;
   }
 
   // compute axes
-  vec3.sub(tmp1, cell[1], cell[0]);
-  vec3.sub(tmp2, cell[2], cell[0]);
-  vec3.cross(n, tmp1, tmp2);
+  const u = vec3.sub([] as any, cell[1], cell[0]);
+  const v = vec3.sub([] as any, cell[2], cell[0]);
+  const n = vec3.cross([] as any, u, v);
 
   vec3.normalize(n, n);
 
@@ -50,9 +47,19 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
 
   for (let ul = -um; ul <= um; ul += lineSpace)
     for (let il = -im; il <= im; il += wheatSpace) {
-      vec3.copy(tmp1, tmp0);
-      vec3.scaleAndAdd(tmp1, tmp1, u, ul);
-      vec3.scaleAndAdd(tmp1, tmp1, v, il);
+      vec3.copy(tmp1, c);
+      vec3.scaleAndAdd(
+        tmp1,
+        tmp1,
+        u,
+        ul + (Math.random() - 0.5) * lineSpace * 0.3
+      );
+      vec3.scaleAndAdd(
+        tmp1,
+        tmp1,
+        v,
+        il + (Math.random() - 0.5) * lineSpace * 0.3
+      );
 
       const isInside = cell
         .map((_, i, cell) => {
@@ -71,6 +78,8 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
       if (isInside) wheatOrigins.push(tmp1.slice() as any);
     }
 
+  const lcell = cells[i];
+
   const update = () => {
     const vertices: number[] = [];
     const normals: number[] = [];
@@ -82,6 +91,44 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
       vertices.push(...m.vertices);
       normals.push(...m.normals);
       colors.push(...m.colors);
+    }
+
+    if (lcell.type === "grown") {
+      if (lcell.tic > 0) {
+        const k = clamp(lcell.tic / maxTic, 0, 1);
+
+        const h = 0.005;
+
+        vec3.copy(tmp0, c);
+        vec3.scaleAndAdd(tmp0, tmp0, n, h);
+
+        for (let i = cell.length; i--; ) {
+          const A = cell[i];
+          const B = cell[(i + 1) % cell.length];
+
+          vec3.copy(tmp1, A);
+          vec3.copy(tmp2, B);
+          vec3.scaleAndAdd(tmp1, tmp1, n, h);
+          vec3.scaleAndAdd(tmp2, tmp2, n, h);
+
+          vec3.sub(tmp3, tmp0, tmp1);
+          vec3.sub(tmp4, tmp0, tmp2);
+
+          vec3.scale(tmp3, tmp3, k);
+          vec3.scale(tmp4, tmp4, k);
+
+          vec3.add(tmp3, tmp3, tmp1);
+          vec3.add(tmp4, tmp4, tmp2);
+
+          const vs = faceToVertices([tmp1, tmp2, tmp4, tmp3] as any);
+
+          vertices.push(...vs);
+          for (let i = vs.length / 3; i--; ) {
+            normals.push(...(n as any));
+            colors.push(...(hintColor as any));
+          }
+        }
+      }
     }
 
     return { vertices, colors, normals };

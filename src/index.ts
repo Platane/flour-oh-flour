@@ -1,7 +1,7 @@
 import "./mock-random";
 import "./canvas";
 import "./controls";
-import "./ui";
+import "./action";
 
 import { render } from "./renderer/render";
 import { vec2 } from "gl-matrix";

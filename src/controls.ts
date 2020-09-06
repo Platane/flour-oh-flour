@@ -1,6 +1,6 @@
 import { canvas } from "./canvas";
 import { onTouchStart, onTouchMove, onTouchEnd } from "./renderer/camera";
-import { onTap } from "./ui";
+import { onTap } from "./action";
 import { Handler } from "./controls-type";
 
 let downTimeStamp = 0;

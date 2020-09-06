@@ -1,7 +1,9 @@
 import { vec3 } from "gl-matrix";
 import { lookAtMatrix3Inv } from "../camera";
-import { z, tmp0 } from "../../constant";
+import { z, tmp0, tmp1 } from "../../constant";
 import { faceToVertices } from "../utils/faceToVertices";
+import { maxGrowth } from "../../logic";
+import { wheatColorEnd, wheatColorStart } from "../colors";
 
 const SIZE = 0.03;
 
@@ -37,11 +39,18 @@ export const createWheat = (origin: vec3, v: vec3, growth: number) => {
   vec3.cross(n, v, z);
   vec3.normalize(n, n);
 
-  const color = [1, 1, 0.3];
+  const s = growth / maxGrowth;
 
-  const branchSize = SIZE * 1.2;
-  const branchBase = SIZE * 0.1;
-  const grainScale = SIZE * 0.3;
+  const color = vec3.lerp(
+    tmp1,
+    wheatColorStart as any,
+    wheatColorEnd as any,
+    s
+  );
+
+  const branchSize = s * SIZE * 1.2;
+  const branchBase = s * SIZE * 0.1;
+  const grainScale = s * SIZE * 0.3;
 
   // branch
 

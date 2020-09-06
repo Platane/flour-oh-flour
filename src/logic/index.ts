@@ -1,21 +1,41 @@
-import { doc } from "prettier";
+import { vec3 } from "gl-matrix";
+import { epsilon } from "../constant";
 
 export let date = 0;
 
 export let flourCount = 0;
 
 export const actionStack: (
-  | { type: "work-cell"; cellIndex: number }
+  | { type: "work-cell"; cellIndex: number; touchPosition: vec3 }
   | { type: "no" }
 )[] = [];
 
 export const maxGrowth = 100;
+export const maxTic = 15;
+
+export const touches: { p: vec3; f: number; date: number }[] = [];
 
 export type Cell = {
   area: number;
   growth: number;
-  lastActionDate: number;
-};
+} & (
+  | {
+      type: "growing";
+    }
+  | {
+      type: "grown";
+      grownSinceDate: number;
+
+      tic: number;
+      ticTarget: number;
+      ticVelocity: number;
+      ticImmunityDate: number;
+    }
+  | {
+      type: "resting";
+      restingSinceDate: number;
+    }
+);
 
 export const cells: Cell[] = [];
 
@@ -30,17 +50,81 @@ export const stepWorld = () => {
     switch (action.type) {
       case "work-cell": {
         const cell = cells[action.cellIndex];
-        cell.growth += 2;
-        if (cell.growth >= maxGrowth) {
-          cell.growth = 0;
-          flourCount += cell.area;
+
+        switch (cell.type) {
+          case "grown": {
+            cell.ticTarget++;
+            cell.ticImmunityDate = date;
+
+            touches.push({ p: action.touchPosition, f: 1, date });
+
+            if (cell.ticTarget >= maxTic) {
+              cell.growth = 0;
+
+              // @ts-ignore
+              cell.type = "growing";
+
+              flourCount += cell.area;
+            }
+            break;
+          }
         }
+
+        break;
       }
     }
   }
 
-  for (const cell of cells) {
-    cell.growth += 0.00001;
+  for (const cell of cells)
+    switch (cell.type) {
+      case "growing": {
+        cell.growth = cell.growth + 15 * dt;
+
+        if (cell.growth >= maxGrowth) {
+          cell.growth = maxGrowth;
+
+          // @ts-ignore
+          cell.type = "grown";
+          // @ts-ignore
+          cell.grownSinceDate = date;
+          // @ts-ignore
+          cell.tic = 0;
+          // @ts-ignore
+          cell.ticTarget = 0;
+          // @ts-ignore
+          cell.ticVelocity = 0;
+        }
+
+        break;
+      }
+
+      case "grown": {
+        if (date > cell.ticImmunityDate + 0.4 && cell.ticTarget) {
+          const v = Math.min(8, 0.1 + cell.ticTarget * 20);
+
+          cell.ticTarget = Math.max(0, cell.ticTarget - v * dt);
+        }
+
+        const tension = 120;
+        const friction = 6;
+
+        const a =
+          (cell.ticTarget - cell.tic) * tension - cell.ticVelocity * friction;
+        cell.ticVelocity += a * dt;
+        cell.tic += cell.ticVelocity * dt;
+
+        break;
+      }
+    }
+
+  for (let i = touches.length; i--; ) {
+    const touch = touches[i];
+
+    const v = Math.min(2, 0.1 + touch.f * 3);
+
+    touch.f -= v * dt;
+
+    if (touch.f < epsilon) touches.splice(i, 1);
   }
 
   pre.innerText = JSON.stringify(
@@ -48,6 +132,8 @@ export const stepWorld = () => {
       date,
       cells,
       flourCount,
+
+      touches,
     }),
     null,
     2

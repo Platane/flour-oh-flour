@@ -5,7 +5,7 @@ import { vec2, mat3, vec3 } from "gl-matrix";
 import { getDelaunayTriangulation } from "../../math/getDelaunayTriangulation";
 import { faceToVertices } from "../utils/faceToVertices";
 import { createWindmill } from "../geometries.ts/windmill";
-import { cells } from "../../logic";
+import { cells, maxGrowth } from "../../logic";
 import { zero, tmp0 } from "../../constant";
 import { createField } from "../geometries.ts/field";
 
@@ -94,7 +94,7 @@ cellFaces.forEach((face, j) => {
   for (let i = vs.length / 3; i--; )
     staticColors.push(90 / 255, 92 / 255, 31 / 255);
 
-  cells.push({ growth: 0, area: 1 } as any);
+  cells.push({ growth: maxGrowth * 0.9, area: 1, type: "growing" } as any);
 });
 
 for (let u = 5; u--; ) {
@@ -153,11 +153,11 @@ const fieldsUpdates = cellFaces.map((cell, i) =>
   createField(cell as any, direction, i)
 );
 
-fieldsUpdates.push(
-  ...indexes.map((ii) =>
-    createField(ii.map((i) => points3d[i]) as vec3[], direction, 0)
-  )
-);
+// fieldsUpdates.push(
+//   ...indexes.map((ii) =>
+//     createField(ii.map((i) => points3d[i]) as vec3[], direction, 0)
+//   )
+// );
 
 export const draw = () => {
   dynamicVertices.length = 0;
