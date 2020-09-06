@@ -50,14 +50,17 @@ const update = () => {
 
 update();
 
+let zoom0 = 0;
+let l0: number | null = null;
+
 let px: number | null = null;
 let py: number | null = null;
 
-const rotateStart = (x: number, y: number) => {
+const rotateStart: Handler = ([{ pageX: x, pageY: y }]) => {
   px = x;
   py = y;
 };
-const rotateMove = (x: number, y: number) => {
+const rotateMove: Handler = ([{ pageX: x, pageY: y }]) => {
   if (px !== null) {
     const dx = x - px!;
     const dy = y - py!;
@@ -77,13 +80,47 @@ const rotateEnd = () => {
   px = null;
 };
 
-export const onTouchStart: Handler = ([{ pageX, pageY }]) => {
-  rotateStart(pageX, pageY);
+const scaleStart: Handler = ([
+  { pageX: ax, pageY: ay },
+  { pageX: bx, pageY: by },
+]) => {
+  zoom0 = zoom;
+  l0 = Math.sqrt((ax - bx) ** 2 + (ay - by) ** 2);
 };
-export const onTouchMove: Handler = ([{ pageX, pageY }]) => {
-  rotateMove(pageX, pageY);
+const scaleMove: Handler = (a) => {
+  if (l0 !== null) {
+    const [{ pageX: ax, pageY: ay }, { pageX: bx, pageY: by }] = a;
+
+    const l = Math.sqrt((ax - bx) ** 2 + (ay - by) ** 2);
+
+    zoom = clamp((zoom0 / l) * l0, 0, 50);
+
+    update();
+  }
 };
-export const onTouchEnd: Handler = rotateEnd;
+const scaleEnd = () => {
+  l0 = null;
+};
+
+export const onTouchStart: Handler = (touches) => {
+  if (touches.length === 1) {
+    scaleEnd();
+    rotateStart(touches);
+  } else if (touches.length > 1) {
+    rotateEnd();
+    scaleStart(touches);
+  }
+};
+export const onTouchMove: Handler = (touches) => {
+  scaleMove(touches);
+  rotateMove(touches);
+};
+export const onTouchEnd: Handler = (touches) => {
+  scaleEnd();
+  rotateEnd();
+
+  onTouchStart(touches);
+};
 
 canvas.addEventListener(
   "wheel",

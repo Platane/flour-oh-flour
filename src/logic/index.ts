@@ -45,7 +45,6 @@ export const stepWorld = () => {
 
   while (actionStack.length) {
     const action = actionStack.shift()!;
-    console.log(action);
 
     switch (action.type) {
       case "work-cell": {
@@ -100,7 +99,7 @@ export const stepWorld = () => {
 
       case "grown": {
         if (date > cell.ticImmunityDate + 0.4 && cell.ticTarget) {
-          const v = Math.min(8, 0.1 + cell.ticTarget * 20);
+          const v = Math.min(14, 0.1 + cell.ticTarget * 22);
 
           cell.ticTarget = Math.max(0, cell.ticTarget - v * dt);
         }
@@ -160,4 +159,5 @@ pre.style.width = "200px";
 pre.style.fontSize = "10px";
 pre.style.padding = "4px";
 pre.style.margin = "2px";
+pre.style.pointerEvents = "none";
 document.body.appendChild(pre);

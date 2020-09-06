@@ -4,9 +4,10 @@ import { onTap } from "./action";
 import { Handler } from "./controls-type";
 
 let downTimeStamp = 0;
+let t0: { pageX: number; pageY: number }[];
 const onStart: Handler = (t) => {
   downTimeStamp = Date.now();
-
+  t0 = t;
   onTouchStart(t);
 };
 const onMove: Handler = (t) => {
@@ -15,12 +16,12 @@ const onMove: Handler = (t) => {
 const onEnd: Handler = (t) => {
   onTouchEnd(t);
 
-  if (Date.now() < downTimeStamp + 300) onTap(t);
+  if (Date.now() < downTimeStamp + 300) onTap(t0);
 };
 
 canvas.addEventListener("mousedown", (event) => onStart([event]));
 canvas.addEventListener("mousemove", (event) => onMove([event]));
-canvas.addEventListener("mouseup", (event) => onEnd([event]));
+canvas.addEventListener("mouseup", () => onEnd([]));
 
 canvas.addEventListener(
   "touchstart",
