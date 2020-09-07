@@ -20,7 +20,7 @@ const loop = () => {
 
 loop();
 
-{
+if (process.env.NODE_ENV !== "production") {
   const canvas = document.createElement("canvas")!;
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -73,18 +73,20 @@ loop();
 
 const ctx = createCanvas().getContext("2d")!;
 
-document.body.addEventListener(
-  "mousemove",
-  ({ pageX, pageY }) => {
-    const x = (pageX / window.innerWidth) * 2 - 1;
-    const y = -((pageY / window.innerHeight) * 2 - 1);
+if (process.env.NODE_ENV !== "production") {
+  document.body.addEventListener(
+    "mousemove",
+    ({ pageX, pageY }) => {
+      const x = (pageX / window.innerWidth) * 2 - 1;
+      const y = -((pageY / window.innerHeight) * 2 - 1);
 
-    const u = raycast(x, y, staticVertices);
+      const u = raycast(x, y, staticVertices);
 
-    updateCursor(u ? u.p : null);
-  },
-  { passive: true }
-);
+      updateCursor(u ? u.p : null);
+    },
+    { passive: true }
+  );
+}
 
 // raycaster test
 if (false) {

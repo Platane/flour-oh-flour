@@ -62,7 +62,7 @@ const cellFaces = [
     // const a = i / arr.length + Math.random() * 0.2;
     const a = i / arr.length;
 
-    const r = 0.9 + Math.random() * 0.2;
+    const r = 0.4 + Math.random() * 0.2;
 
     const o: vec3 = [
       //

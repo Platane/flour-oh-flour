@@ -1,7 +1,7 @@
 import { vec3 } from "gl-matrix";
 import { createWheat } from "./wheat";
 import { tmp0, tmp1, tmp2, tmp3, tmp4 } from "../../constant";
-import { cells, maxTic } from "../../logic";
+import { cells, maxTic, date } from "../../logic";
 import { clamp } from "../../math/utils";
 import { faceToVertices } from "../utils/faceToVertices";
 import { hintColor } from "../colors";
@@ -81,6 +81,8 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
 
   const lcell = cells[i];
 
+  const particules = [];
+
   const update = () => {
     const vertices: number[] = [];
     const normals: number[] = [];
@@ -130,6 +132,8 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
           }
         }
       }
+
+      const k = lcell.grownSinceDate - date;
     }
 
     return { vertices, colors, normals };
