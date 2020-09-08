@@ -13,7 +13,7 @@ export const actionStack: (
 export const maxGrowth = 100;
 export const maxTic = 15;
 
-export const touches: { p: vec3; f: number; date: number }[] = [];
+export const touches: { p: vec3; i: number; date: number }[] = [];
 
 export type Cell = {
   area: number;
@@ -55,7 +55,11 @@ export const stepWorld = () => {
             cell.ticTarget++;
             cell.ticImmunityDate = date;
 
-            touches.push({ p: action.touchPosition, f: 1, date });
+            touches.push({
+              p: action.touchPosition,
+              i: action.cellIndex,
+              date,
+            });
 
             if (cell.ticTarget >= maxTic) {
               cell.growth = 0;
@@ -116,15 +120,7 @@ export const stepWorld = () => {
       }
     }
 
-  for (let i = touches.length; i--; ) {
-    const touch = touches[i];
-
-    const v = Math.min(2, 0.1 + touch.f * 3);
-
-    touch.f -= v * dt;
-
-    if (touch.f < epsilon) touches.splice(i, 1);
-  }
+  while (touches[0] && touches[0].date + 500 < date) touches.shift();
 
   pre.innerText = JSON.stringify(
     prepare({
@@ -132,7 +128,7 @@ export const stepWorld = () => {
       cells,
       flourCount,
 
-      touches,
+      // touches,
     }),
     null,
     2

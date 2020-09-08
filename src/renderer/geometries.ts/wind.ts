@@ -34,8 +34,6 @@ export const getWindDirection = (out: vec3, o: vec3) => {
   vec3.normalize(out, out);
 
   if (lastDate !== date) {
-    debugger;
-
     const tension = 160;
     const friction = 12;
     const dTarget = date - hoveredDate < 0.15 ? 1 : 0;

@@ -5,9 +5,11 @@ import { vec2, vec3 } from "gl-matrix";
 import { getDelaunayTriangulation } from "../../math/getDelaunayTriangulation";
 import { faceToVertices } from "../utils/faceToVertices";
 import { createWindmill } from "../geometries.ts/windmill";
-import { cells, maxGrowth, date } from "../../logic";
+import { cells, maxGrowth } from "../../logic";
 import { zero, tmp0 } from "../../constant";
 import { createField } from "../geometries.ts/field";
+import { dynamicVertices, dynamicNormals, dynamicColors } from "./sharedBuffer";
+import { update as updateParticles } from "./particles";
 
 const p0 = generatePerlinNoise(3, 3, 0.4);
 const p1 = generatePerlinNoise(3, 3, 0.7);
@@ -144,10 +146,6 @@ staticMaterial.updateGeometry(
 //@ts-ignore
 staticColors = null;
 
-export const dynamicVertices: number[] = [];
-export const dynamicNormals: number[] = [];
-export const dynamicColors: number[] = [];
-
 const direction: vec3 = [0, 0, 1];
 
 const fieldsUpdates = cellFaces.map((cell, i) =>
@@ -166,12 +164,16 @@ export const draw = () => {
   dynamicNormals.length = 0;
   dynamicColors.length = 0;
 
+  // add dynamic fields
   for (const update of fieldsUpdates) {
     const { vertices, normals, colors } = update();
     dynamicVertices.push(...vertices);
     dynamicNormals.push(...normals);
     dynamicColors.push(...colors);
   }
+
+  // update particles
+  updateParticles();
 
   dynamicMaterial.updateGeometry(
     new Float32Array(dynamicColors),

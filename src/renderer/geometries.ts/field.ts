@@ -1,11 +1,12 @@
 import { vec3 } from "gl-matrix";
 import { createWheat } from "./wheat";
-import { tmp0, tmp1, tmp2, tmp3, tmp4 } from "../../constant";
-import { cells, maxTic, date } from "../../logic";
+import { tmp0, tmp1, tmp2, tmp3, tmp4, zero } from "../../constant";
+import { cells, maxTic, date, touches } from "../../logic";
 import { clamp } from "../../math/utils";
 import { faceToVertices } from "../utils/faceToVertices";
-import { hintColor } from "../colors";
+import { hintColor, wheatColorEnd } from "../colors";
 import { getWindDirection } from "./wind";
+import { particles } from "../meshes/particles";
 
 const wheatSpace = 0.07;
 const lineSpace = 0.06;
@@ -81,8 +82,6 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
 
   const lcell = cells[i];
 
-  const particules = [];
-
   const update = () => {
     const vertices: number[] = [];
     const normals: number[] = [];
@@ -132,8 +131,47 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
           }
         }
       }
+    }
 
-      const k = lcell.grownSinceDate - date;
+    // spawn particles
+    for (const touch of touches) {
+      if (touch.i === i)
+        for (let k = 0; k < (0.18 - (date - touch.date)) * 8; k++) {
+          const positionA = vec3.copy([] as any, touch.p);
+
+          const s = 0.5;
+
+          vec3.copy(tmp0, zero);
+          const phi = Math.random() * Math.PI * 2;
+          vec3.scaleAndAdd(tmp0, tmp0, u, Math.sin(phi));
+          vec3.scaleAndAdd(tmp0, tmp0, v, Math.cos(phi));
+
+          vec3.scaleAndAdd(positionA, positionA, tmp0, Math.random() * s * 0.4);
+
+          const l = (1 + 0.8 * Math.random()) * 0.23;
+
+          vec3.scaleAndAdd(tmp0, tmp0, n, Math.random() + 0.1);
+          vec3.normalize(tmp0, tmp0);
+
+          const positionB = vec3.copy([] as any, positionA);
+          vec3.scaleAndAdd(positionB, positionB, tmp0, l);
+
+          const a = Math.random() * 3;
+
+          particles.push({
+            positionA,
+            positionB,
+            angleA: a,
+            angleB: a + (Math.random() - 0.5) * 0.9,
+            sizeA: s * 0.1,
+            sizeB: s * 0.13 + s * (Math.random() + 2) * 0.01,
+            startDate: date,
+            duration: l,
+            color: wheatColorEnd.map((x) =>
+              clamp(x + 0.37 * (Math.random() - 0.5), 0, 1)
+            ),
+          });
+        }
     }
 
     return { vertices, colors, normals };
