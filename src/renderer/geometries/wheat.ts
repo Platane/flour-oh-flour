@@ -1,9 +1,9 @@
 import { vec3 } from "gl-matrix";
 import { lookAtMatrix3Inv } from "../camera";
 import { z, tmp0, tmp1 } from "../../constant";
-import { faceToVertices } from "../utils/faceToVertices";
 import { maxGrowth } from "../../logic";
 import { wheatColorEnd, wheatColorStart } from "../colors";
+import { pushFace } from "../meshes/sharedBuffer";
 
 const SIZE = 0.03;
 
@@ -71,7 +71,7 @@ export const createWheat = (origin: vec3, v: vec3, growth: number) => {
   vec3.add(out, out, origin);
   branchFace.push(out);
 
-  faces.push(branchFace);
+  pushFace(branchFace, color, z);
 
   // grains
   for (let k = nGrain; k--; ) {
@@ -95,44 +95,6 @@ export const createWheat = (origin: vec3, v: vec3, growth: number) => {
 
     if (uy === 1) vertices.reverse();
 
-    faces.push(vertices);
+    pushFace(vertices, color, z);
   }
-
-  const vertices: number[] = [];
-  for (const face of faces) vertices.push(...faceToVertices(face as any));
-
-  const colors: number[] = [];
-  for (let i = vertices.length / 3; i--; ) colors.push(...(color as any));
-
-  const normals = [];
-  for (let i = vertices.length / 3; i--; ) {
-    normals[i * 3 + 0] = 0;
-    normals[i * 3 + 1] = 0;
-    normals[i * 3 + 2] = 1;
-  }
-
-  return { vertices, colors, normals };
 };
-
-// export const draw = () => {
-//   const a = Date.now() * 0.001;
-//   const v: vec3 = [0, Math.sin(a), Math.cos(a)];
-
-//   v[0] = 0.5;
-//   v[1] = 1;
-//   v[2] = 0;
-
-//   vec3.normalize(v, v);
-
-//   const wm = createWheat([0.0, 0, 0.0], v, 0);
-
-//   const normals = new Float32Array(wm.vertices.length);
-//   for (let i = wm.vertices.length / 3; i--; ) {
-//     normals[i * 3 + 0] = 0;
-//     normals[i * 3 + 1] = 0;
-//     normals[i * 3 + 2] = 1;
-//   }
-
-//   material.updateGeometry(wm.colors, wm.vertices, normals);
-//   material.draw();
-// };

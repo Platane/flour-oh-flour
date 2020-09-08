@@ -1,5 +1,6 @@
 import { createMaterial } from "../materials";
 import { vec3 } from "gl-matrix";
+import { gl } from "../../canvas";
 
 // prettier-ignore
 const normals = Float32Array.from([
@@ -31,7 +32,7 @@ const colors = Float32Array.from([
     0,0,1,
 ])
 
-const m = createMaterial();
+const m = createMaterial(gl.STATIC_DRAW);
 
 export const update = (c: vec3 | null) => {
   if (!c) {

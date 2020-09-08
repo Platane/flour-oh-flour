@@ -1,5 +1,6 @@
 import { createMaterial } from "../materials";
 import { getFlatShadingNormals } from "../utils/flatShading";
+import { gl } from "../../canvas";
 
 const u = 0.1;
 // prettier-ignore
@@ -70,7 +71,7 @@ const colors = Float32Array.from([
     0,0,1,
 ])
 
-const m = createMaterial();
+const m = createMaterial(gl.STATIC_DRAW);
 const normals = getFlatShadingNormals(indexes, vertices);
 m.updateGeometry(colors, vertices, normals);
 

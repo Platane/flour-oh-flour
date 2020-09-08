@@ -22,11 +22,11 @@ const worldInverseTransposedMatrixLocation = getUniformLocation(
 const s = Date.now();
 
 const gIndexBuffer = gl.createBuffer();
-export const gIndexes = new Uint16Array(50 * 1000).map((_, i) => i);
+export const gIndexes = new Uint16Array(100 * 1000).map((_, i) => i);
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gIndexBuffer);
 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, gIndexes, gl.STATIC_DRAW);
 
-export const createMaterial = () => {
+export const createMaterial = (usage: Parameters<typeof gl.bufferData>[2]) => {
   const positionBuffer = gl.createBuffer();
   const normalBuffer = gl.createBuffer();
   const colorBuffer = gl.createBuffer();
@@ -35,18 +35,19 @@ export const createMaterial = () => {
   const updateGeometry = (
     colors: Float32Array,
     positions: Float32Array,
-    normals: Float32Array
+    normals: Float32Array,
+    newN = positions.length / 3
   ) => {
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, colors, usage);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, positions, usage);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, normals, usage);
 
-    n = positions.length / 3;
+    n = newN;
 
     if (process.env.NODE_ENV !== "production") {
       // console.log("nfaces:", n / 3);

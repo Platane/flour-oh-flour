@@ -2,7 +2,13 @@ import { vec3 } from "gl-matrix";
 import { date } from "../../logic";
 import { tmp0, tmp1, z, zero } from "../../constant";
 import { lookAtMatrix3Inv } from "../camera";
-import { dynamicVertices, dynamicNormals, dynamicColors } from "./sharedBuffer";
+import {
+  dynamicVertices,
+  dynamicNormals,
+  dynamicColors,
+  n,
+  incrementN,
+} from "./sharedBuffer";
 import { lerp } from "../../math/utils";
 
 export const particles: {
@@ -48,16 +54,26 @@ export const update = () => {
     const s = lerp(k, sizeA, sizeB);
     const a = lerp(k, angleA, angleB);
 
-    for (const v of particleKernel) {
-      vec3.copy(tmp1, v);
+    for (let i = 0; i < 3; i++) {
+      vec3.copy(tmp1, particleKernel[i]);
       vec3.rotateZ(tmp1, tmp1, zero, a);
       vec3.transformMat3(tmp1, tmp1, lookAtMatrix3Inv);
       vec3.scale(tmp1, tmp1, s);
       vec3.add(tmp1, tmp1, tmp0);
 
-      dynamicVertices.push(...(tmp1 as number[]));
-      dynamicNormals.push(...(z as number[]));
-      dynamicColors.push(...(color as number[]));
+      dynamicVertices[n * 9 + i * 3 + 0] = tmp1[0];
+      dynamicVertices[n * 9 + i * 3 + 1] = tmp1[1];
+      dynamicVertices[n * 9 + i * 3 + 2] = tmp1[2];
+
+      dynamicColors[n * 9 + i * 3 + 0] = color[0];
+      dynamicColors[n * 9 + i * 3 + 1] = color[1];
+      dynamicColors[n * 9 + i * 3 + 2] = color[2];
+
+      dynamicNormals[n * 9 + i * 3 + 0] = 0;
+      dynamicNormals[n * 9 + i * 3 + 1] = 0;
+      dynamicNormals[n * 9 + i * 3 + 2] = 1;
     }
+
+    incrementN();
   }
 };

@@ -3,10 +3,10 @@ import { createWheat } from "./wheat";
 import { tmp0, tmp1, tmp2, tmp3, tmp4, zero } from "../../constant";
 import { cells, maxTic, date, touches } from "../../logic";
 import { clamp } from "../../math/utils";
-import { faceToVertices } from "../utils/faceToVertices";
 import { hintColor, wheatColorEnd } from "../colors";
 import { getWindDirection } from "./wind";
 import { particles } from "../meshes/particles";
+import { pushFace } from "../meshes/sharedBuffer";
 
 const wheatSpace = 0.07;
 const lineSpace = 0.06;
@@ -83,17 +83,8 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
   const lcell = cells[i];
 
   const update = () => {
-    const vertices: number[] = [];
-    const normals: number[] = [];
-    const colors: number[] = [];
-
-    for (const o of wheatOrigins) {
-      const m = createWheat(o, getWindDirection(tmp2, o), cells[i].growth);
-
-      vertices.push(...m.vertices);
-      normals.push(...m.normals);
-      colors.push(...m.colors);
-    }
+    for (const o of wheatOrigins)
+      createWheat(o, getWindDirection(tmp2, o), cells[i].growth);
 
     if (lcell.type === "grown") {
       if (lcell.tic > 0) {
@@ -122,13 +113,7 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
           vec3.add(tmp3, tmp3, tmp1);
           vec3.add(tmp4, tmp4, tmp2);
 
-          const vs = faceToVertices([tmp1, tmp2, tmp4, tmp3] as any);
-
-          vertices.push(...vs);
-          for (let i = vs.length / 3; i--; ) {
-            normals.push(...(n as any));
-            colors.push(...(hintColor as any));
-          }
+          pushFace([tmp1, tmp2, tmp4, tmp3], hintColor, n);
         }
       }
     }
@@ -173,8 +158,6 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
           });
         }
     }
-
-    return { vertices, colors, normals };
   };
 
   return update;

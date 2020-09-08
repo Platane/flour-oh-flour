@@ -4,12 +4,19 @@ import { generatePerlinNoise } from "../../math/generatePerlinNoise";
 import { vec2, vec3 } from "gl-matrix";
 import { getDelaunayTriangulation } from "../../math/getDelaunayTriangulation";
 import { faceToVertices } from "../utils/faceToVertices";
-import { createWindmill } from "../geometries.ts/windmill";
+import { createWindmill } from "../geometries/windmill";
 import { cells, maxGrowth } from "../../logic";
 import { zero, tmp0 } from "../../constant";
-import { createField } from "../geometries.ts/field";
-import { dynamicVertices, dynamicNormals, dynamicColors } from "./sharedBuffer";
+import { createField } from "../geometries/field";
+import {
+  dynamicVertices,
+  dynamicNormals,
+  dynamicColors,
+  resetN,
+  n,
+} from "./sharedBuffer";
 import { update as updateParticles } from "./particles";
+import { gl } from "../../canvas";
 
 const p0 = generatePerlinNoise(3, 3, 0.4);
 const p1 = generatePerlinNoise(3, 3, 0.7);
@@ -131,8 +138,8 @@ for (let u = 5; u--; ) {
 }
 
 // materials
-const staticMaterial = createMaterial();
-const dynamicMaterial = createMaterial();
+const staticMaterial = createMaterial(gl.STATIC_DRAW);
+const dynamicMaterial = createMaterial(gl.DYNAMIC_DRAW);
 
 staticMaterial.updateGeometry(
   new Float32Array(staticColors),
@@ -160,25 +167,19 @@ const fieldsUpdates = cellFaces.map((cell, i) =>
 
 export const draw = () => {
   // update dynamic buffers
-  dynamicVertices.length = 0;
-  dynamicNormals.length = 0;
-  dynamicColors.length = 0;
+  resetN();
 
   // add dynamic fields
-  for (const update of fieldsUpdates) {
-    const { vertices, normals, colors } = update();
-    dynamicVertices.push(...vertices);
-    dynamicNormals.push(...normals);
-    dynamicColors.push(...colors);
-  }
+  for (const update of fieldsUpdates) update();
 
   // update particles
   updateParticles();
 
   dynamicMaterial.updateGeometry(
-    new Float32Array(dynamicColors),
-    new Float32Array(dynamicVertices),
-    new Float32Array(dynamicNormals)
+    dynamicColors,
+    dynamicVertices,
+    dynamicNormals,
+    n * 3
   );
 
   // draw
