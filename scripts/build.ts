@@ -61,7 +61,10 @@ export const createRollupInputOptions = (production: boolean) =>
         plugins: [
           [
             babelPluginDefine,
-            { "process.env.NODE_ENV": production ? "production" : "dev" },
+            {
+              "Math.PI": 3.1416,
+              "process.env.NODE_ENV": production ? "production" : "dev",
+            },
           ],
         ],
       }),
