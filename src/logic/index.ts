@@ -11,7 +11,7 @@ export const actionStack: (
 )[] = [];
 
 export const maxGrowth = 100;
-export const maxTic = 15;
+export const maxTic = 11;
 
 export const touches: { p: vec3; i: number; date: number }[] = [];
 
@@ -21,6 +21,7 @@ export type Cell = {
 } & (
   | {
       type: "growing";
+      growingSinceDate: number;
     }
   | {
       type: "grown";
@@ -66,6 +67,8 @@ export const stepWorld = () => {
 
               // @ts-ignore
               cell.type = "growing";
+              // @ts-ignore
+              cell.growingSinceDate = date;
 
               flourCount += cell.area;
             }
@@ -102,7 +105,7 @@ export const stepWorld = () => {
       }
 
       case "grown": {
-        if (date > cell.ticImmunityDate + 0.4 && cell.ticTarget) {
+        if (date > cell.ticImmunityDate + 0.45 && cell.ticTarget) {
           const v = Math.min(14, 0.1 + cell.ticTarget * 22);
 
           cell.ticTarget = Math.max(0, cell.ticTarget - v * dt);

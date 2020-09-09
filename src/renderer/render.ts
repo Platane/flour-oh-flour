@@ -19,6 +19,6 @@ gl.depthFunc(gl.LESS);
 export const render = () => {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  drawCursor();
+  // drawCursor();
   drawTerrain();
 };

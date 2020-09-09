@@ -4,6 +4,7 @@ import { z, tmp0, tmp1 } from "../../constant";
 import { maxGrowth } from "../../logic";
 import { wheatColorEnd, wheatColorStart } from "../colors";
 import { pushFace } from "../meshes/sharedBuffer";
+import { clamp } from "../../math/utils";
 
 const SIZE = 0.03;
 
@@ -34,12 +35,27 @@ const nGrain = 6;
 export const getRequiredFaceNumber = () => 1 + nGrain * (kernel.length - 2);
 
 export const createWheat = (origin: vec3, v: vec3, growth: number) => {
-  const faces: vec3[][] = [];
-
   vec3.cross(n, v, z);
   vec3.normalize(n, n);
 
   const s = growth / maxGrowth;
+
+  // color randomization
+  // tmp1[0] = clamp(
+  //   wheatColorEnd[0] + Math.sin(12312 * origin[0] ** 2) * 0.1,
+  //   0,
+  //   1
+  // );
+  // tmp1[1] = clamp(
+  //   wheatColorEnd[1] + Math.sin(122 * origin[1] ** 2) * 0.1,
+  //   0,
+  //   1
+  // );
+  // tmp1[2] = clamp(
+  //   wheatColorEnd[2] + Math.sin(1227 * origin[0] ** 2 + 645 * origin[1]) * 0.05,
+  //   0,
+  //   1
+  // );
 
   const color = vec3.lerp(
     tmp1,

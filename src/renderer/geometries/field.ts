@@ -75,6 +75,9 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
 
     if (lcell.type === "grown") {
       if (lcell.tic > 0) {
+        //
+        // draw a orange border when the field is being clicked
+
         const k = clamp(lcell.tic / maxTic, 0, 1);
 
         const h = 0.005;
@@ -103,11 +106,13 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
           pushFace([tmp1, tmp2, tmp4, tmp3], hintColor, n);
         }
       } else {
+        //
+        // spawn particles when the field is fully grown
+
         if ((0 | (date * 1000)) % 3 === 0) {
           // debugger;
 
           const positionA: vec3 = [999999, 999999, 999999];
-          const positionB: vec3 = [] as any;
 
           while (!isInsideHull(cell, n, positionA)) {
             vec3.copy(positionA, c);
@@ -129,7 +134,7 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
 
           const l = (1 + Math.random() * 2) * 0.5 * s;
 
-          vec3.copy(positionB, positionA);
+          const positionB = vec3.copy([] as any, positionA);
           vec3.scaleAndAdd(positionB, positionB, n, l);
 
           const a = Math.random() * 3;
@@ -140,7 +145,7 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
             angleA: a,
             angleB: a + (Math.random() - 0.5) * 0.2,
             sizeA: s * 0.06,
-            sizeB: s * 0.03,
+            sizeB: s * 0.015,
             startDate: date,
             duration: l * 10,
             color: hintColor,
@@ -149,10 +154,66 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
       }
     }
 
-    // spawn particles
+    if (lcell.type === "growing") {
+      const kMax = (0.27 - (date - lcell.growingSinceDate)) * 80;
+
+      for (let k = 0; k < kMax; k++) {
+        const positionA: vec3 = [9999, 9999, 9999] as any;
+
+        let x = 0;
+        let y = 0;
+
+        while (x * x + y * y < 0.03 || !isInsideHull(cell, n, positionA)) {
+          x = (Math.random() - 0.5) * 2;
+          y = (Math.random() - 0.5) * 2;
+
+          vec3.copy(positionA, c);
+          vec3.scaleAndAdd(positionA, positionA, u, r * x);
+          vec3.scaleAndAdd(positionA, positionA, v, r * y);
+        }
+
+        vec3.subtract(tmp0, positionA, c);
+
+        const d = vec3.length(tmp0);
+
+        vec3.scaleAndAdd(
+          tmp0,
+          tmp0,
+          n,
+          Math.max(r * 0.01, (r - d) * (0.7 + Math.random() + 0.7))
+        );
+        vec3.normalize(tmp0, tmp0);
+        const s = 0.5;
+
+        const l = (1 + Math.random() * 5) * 0.2 * s;
+
+        const positionB = vec3.copy([] as any, positionA);
+        vec3.scaleAndAdd(positionB, positionB, tmp0, l);
+
+        const a = Math.random() * 3;
+
+        particles.push({
+          positionA,
+          positionB,
+          angleA: a,
+          angleB: a + (Math.random() - 0.5) * 0.9,
+          sizeA: s * 0.07,
+          sizeB: s * 0.1 + s * (Math.random() + 2) * 0.01,
+          startDate: date,
+          duration: l * 0.45,
+          // color: [0, 0, Math.random()],
+          color: wheatColorEnd.map((x) =>
+            clamp(x + 0.37 * (Math.random() - 0.5), 0, 1)
+          ),
+        });
+      }
+    }
+
+    //
+    // spawn particles for each touches on the field
     for (const touch of touches) {
       if (touch.i === i)
-        for (let k = 0; k < (0.18 - (date - touch.date)) * 8; k++) {
+        for (let k = 0; k < (0.12 - (date - touch.date)) * 8; k++) {
           const positionA = vec3.copy([] as any, touch.p);
 
           const s = 0.5;
