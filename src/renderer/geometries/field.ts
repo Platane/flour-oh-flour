@@ -7,6 +7,7 @@ import { hintColor, wheatColorEnd } from "../colors";
 import { getWindDirection } from "./wind";
 import { particles } from "../meshes/particles";
 import { pushFace } from "../meshes/sharedBuffer";
+import { isInsideHull } from "../../math/hull";
 
 const wheatSpace = 0.07;
 const lineSpace = 0.06;
@@ -63,21 +64,7 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
         il + (Math.random() - 0.5) * lineSpace * 0.3
       );
 
-      const isInside = cell
-        .map((_, i, cell) => {
-          const A = cell[i];
-          const B = cell[(i + 1) % cell.length];
-
-          return (
-            vec3.dot(
-              n,
-              vec3.cross(tmp2, vec3.sub(tmp2, tmp1, A), vec3.sub(tmp3, B, A))
-            ) > 0
-          );
-        })
-        .every((x, _, [u]) => x === u);
-
-      if (isInside) wheatOrigins.push(tmp1.slice() as any);
+      if (isInsideHull(cell, n, tmp1)) wheatOrigins.push(tmp1.slice() as any);
     }
 
   const lcell = cells[i];
@@ -115,6 +102,50 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
 
           pushFace([tmp1, tmp2, tmp4, tmp3], hintColor, n);
         }
+      } else {
+        if ((0 | (date * 1000)) % 3 === 0) {
+          // debugger;
+
+          const positionA: vec3 = [999999, 999999, 999999];
+          const positionB: vec3 = [] as any;
+
+          while (!isInsideHull(cell, n, positionA)) {
+            vec3.copy(positionA, c);
+            vec3.scaleAndAdd(
+              positionA,
+              positionA,
+              u,
+              (Math.random() - 0.5) * 2 * r
+            );
+            vec3.scaleAndAdd(
+              positionA,
+              positionA,
+              v,
+              (Math.random() - 0.5) * 2 * r
+            );
+          }
+
+          const s = 0.5;
+
+          const l = (1 + Math.random() * 2) * 0.5 * s;
+
+          vec3.copy(positionB, positionA);
+          vec3.scaleAndAdd(positionB, positionB, n, l);
+
+          const a = Math.random() * 3;
+
+          particles.push({
+            positionA,
+            positionB,
+            angleA: a,
+            angleB: a + (Math.random() - 0.5) * 0.2,
+            sizeA: s * 0.06,
+            sizeB: s * 0.03,
+            startDate: date,
+            duration: l * 10,
+            color: hintColor,
+          });
+        }
       }
     }
 
@@ -148,8 +179,8 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
             positionB,
             angleA: a,
             angleB: a + (Math.random() - 0.5) * 0.9,
-            sizeA: s * 0.1,
-            sizeB: s * 0.13 + s * (Math.random() + 2) * 0.01,
+            sizeA: s * 0.07,
+            sizeB: s * 0.1 + s * (Math.random() + 2) * 0.01,
             startDate: date,
             duration: l,
             color: wheatColorEnd.map((x) =>
