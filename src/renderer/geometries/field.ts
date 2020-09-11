@@ -80,7 +80,7 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
 
         const k = clamp(lcell.tic / maxTic, 0, 1);
 
-        const h = 0.005;
+        const h = 0.0005;
 
         vec3.copy(tmp0, c);
         vec3.scaleAndAdd(tmp0, tmp0, n, h);
@@ -154,6 +154,8 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
       }
     }
 
+    //
+    // explode particles after reap
     if (lcell.type === "growing") {
       const kMax = (0.27 - (date - lcell.growingSinceDate)) * 80;
 

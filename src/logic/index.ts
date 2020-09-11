@@ -1,5 +1,4 @@
 import { vec3 } from "gl-matrix";
-import { epsilon } from "../constant";
 
 export let date = 0;
 
@@ -125,17 +124,17 @@ export const stepWorld = () => {
 
   while (touches[0] && touches[0].date + 500 < date) touches.shift();
 
-  pre.innerText = JSON.stringify(
-    prepare({
-      date,
-      cells,
-      flourCount,
+  // pre.innerText = JSON.stringify(
+  //   prepare({
+  //     date,
+  //     cells,
+  //     flourCount,
 
-      // touches,
-    }),
-    null,
-    2
-  );
+  //     // touches,
+  //   }),
+  //   null,
+  //   2
+  // );
 };
 
 const prepare = (o: any): any => {
