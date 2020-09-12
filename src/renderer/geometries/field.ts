@@ -6,7 +6,7 @@ import { clamp } from "../../math/utils";
 import { hintColor, wheatColorEnd } from "../colors";
 import { getWindDirection } from "./wind";
 import { particles } from "../meshes/particles";
-import { pushFace } from "../meshes/sharedBuffer";
+import { pushFace } from "../globalBuffers/dynamic";
 import { isInsidePolygon } from "../../math/convexPolygon";
 
 const wheatSpace = 0.07;
@@ -106,7 +106,7 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
 
           pushFace([tmp1, tmp2, tmp4, tmp3], hintColor, n);
         }
-      } else {
+      } else if (false) {
         //
         // spawn particles when the field is fully grown
 
@@ -157,7 +157,7 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
 
     //
     // explode particles after reap
-    if (lcell.type === "growing") {
+    if (lcell.type === "growing" && false) {
       const kMax = (0.27 - (date - lcell.growingSinceDate)) * 80;
 
       for (let k = 0; k < kMax; k++) {

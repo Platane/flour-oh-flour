@@ -3,7 +3,7 @@ import { lookAtMatrix3Inv } from "../camera";
 import { z, tmp0, tmp1 } from "../../constant";
 import { maxGrowth } from "../../logic";
 import { wheatColorEnd, wheatColorStart } from "../colors";
-import { pushFace } from "../meshes/sharedBuffer";
+import { pushFace } from "../globalBuffers/dynamic";
 import { clamp } from "../../math/utils";
 
 const SIZE = 0.03;

@@ -1,22 +1,17 @@
-import { createMaterial, gIndexes } from "../materials";
-import { getFlatShadingNormals } from "../utils/flatShading";
 import { generatePerlinNoise } from "../../math/generatePerlinNoise";
-import { vec2, vec3 } from "gl-matrix";
+import { vec2, vec3, mat4 } from "gl-matrix";
 import { getDelaunayTriangulation } from "../../math/getDelaunayTriangulation";
-import { faceToVertices } from "../utils/faceToVertices";
-import { createWindmill } from "../geometries/windmill";
 import { cells, maxGrowth } from "../../logic";
 import { zero, tmp0, epsilon, tmp1, tmp2, up } from "../../constant";
 import { createField } from "../geometries/field";
 import {
-  dynamicVertices,
-  dynamicNormals,
-  dynamicColors,
-  resetN,
+  vertices,
+  normals,
+  colors,
+  incrementN,
   n,
-} from "./sharedBuffer";
-import { update as updateParticles } from "./particles";
-import { gl } from "../../canvas";
+  pushFace,
+} from "../globalBuffers/static";
 import { getVoronoiTesselation } from "../../math/getVoronoiTesselation";
 import { createCanvas } from "../../debugCanvas";
 import {
@@ -26,6 +21,7 @@ import {
   isInsidePolygon,
 } from "../../math/convexPolygon";
 import { getSegmentIntersection } from "../../math/getSegmentIntersection";
+import { hillColor, dirtColor } from "../colors";
 
 //
 // generate an interesting potato shaped hull
@@ -121,7 +117,7 @@ const getAltitude = (x: number, y: number) => {
 
   const d = distanceToHull(x, y);
 
-  return 1.2 + (0.7 * d + h * d) * 0.1;
+  return (0.7 * d + h * d) * 0.1;
 };
 
 //
@@ -164,8 +160,6 @@ while (cellCandidates.faces.length && ccells.length < nCell) {
   const hullCompactness = hullArea / boundingSphereArea;
 
   if (hullArea < 0.01 || hullCompactness < 0.4) continue;
-
-  console.log(hullArea, hullCompactness);
 
   // some point are already frozen,
   // meaning we can no longer move them
@@ -254,8 +248,6 @@ while (cellCandidates.faces.length && ccells.length < nCell) {
   // add to the cell list
   ccells.push(vertices);
 }
-// ccells[0].splice(2, 3);
-// ccells[0].splice(2, 1);
 
 //
 // get another point cloud to fill the void between cells
@@ -269,7 +261,7 @@ const fillPoints: vec2[] = ccells
 const fillPointsSplit: vec2[] = [];
 
 let k = 0;
-while (k < 100 && fillPoints.length < 150) {
+while (k < 100 && fillPoints.length < 160) {
   const x = Math.random();
   const y = Math.random();
 
@@ -287,9 +279,7 @@ while (k < 100 && fillPoints.length < 150) {
   }
 }
 
-// fillPoints.push([0.5, 0.53]);
-
-const fillIndixes = getDelaunayTriangulation(fillPoints);
+const fillIndexes = getDelaunayTriangulation(fillPoints);
 
 //
 // split the triangle edge on cell edge
@@ -313,11 +303,11 @@ for (const edge of cellEdges) {
 }
 
 for (let k = 3; k--; ) {
-  ll: for (let i = fillIndixes.length; i--; )
+  ll: for (let i = fillIndexes.length; i--; )
     for (let j = 3; j--; ) {
       // each triangle edge
-      const a1 = fillIndixes[i][j];
-      const a2 = fillIndixes[i][(j + 1) % 3];
+      const a1 = fillIndexes[i][j];
+      const a2 = fillIndexes[i][(j + 1) % 3];
 
       const A1 = fillPoints[a1];
       const A2 = fillPoints[a2];
@@ -333,15 +323,14 @@ for (let k = 3; k--; ) {
           1 - out[3] > epsilon
         ) {
           const E = vec3.lerp([] as any, B1, B2, out[2]);
-          console.log("ii", a1, a2);
 
           const e = fillPoints.length;
           fillPoints.push(E as any);
           fillPointsSplit.push(E as any);
 
-          for (let j = fillIndixes.length; j--; ) {
-            if (fillIndixes[j].includes(a1) && fillIndixes[j].includes(a2)) {
-              const [indices] = fillIndixes.splice(j, 1);
+          for (let j = fillIndexes.length; j--; ) {
+            if (fillIndexes[j].includes(a1) && fillIndexes[j].includes(a2)) {
+              const [indices] = fillIndexes.splice(j, 1);
 
               // decrement i
               if (j !== i) i = Math.max(0, i - 1);
@@ -349,7 +338,7 @@ for (let k = 3; k--; ) {
               let a3 = 0;
               for (const x of indices) if (x !== a1 && x !== a2) a3 = x;
 
-              fillIndixes.push([a1, a3, e], [a2, a3, e]);
+              fillIndexes.push([a1, a3, e], [a2, a3, e]);
             }
           }
 
@@ -362,35 +351,31 @@ for (let k = 3; k--; ) {
 //
 // remove triangle that are inside cells
 //
-for (let i = fillIndixes.length; i--; ) {
+for (let i = fillIndexes.length; i--; ) {
   const c = getPolygonCenter(
     [] as any,
-    fillIndixes[i].map((k) => fillPoints[k] as any)
+    fillIndexes[i].map((k) => fillPoints[k] as any)
   );
 
   if (ccells.some((cell) => isInsidePolygon(cell, up, [c[0], 0, c[1]])))
-    fillIndixes.splice(i, 1);
+    fillIndexes.splice(i, 1);
 }
 
 //
 // remove ugly outer shell
 //
 // TODO
-for (let i = fillIndixes.length; i--; ) {}
+for (let i = fillIndexes.length; i--; ) {}
 
 //
 // form the triangles
 //
-const fillingTriangles = fillIndixes.map((indexes) =>
-  indexes.map((k) => {
-    const [x, z, y] = fillPoints[k] as any;
 
-    return [x, y ?? getAltitude(x, z), z];
-  })
-);
+for (const p of fillPoints)
+  if (p.length === 2) (p as any).push(getAltitude(p[0], p[1]));
 
 if (process.env.NODE_ENV !== "production") {
-  const l = 600;
+  const l = 300;
   if (false) {
     const c = createCanvas();
     const ctx = c.getContext("2d")!;
@@ -460,7 +445,7 @@ if (process.env.NODE_ENV !== "production") {
     }
 
     ctx.lineWidth = 0.25;
-    for (const [a, b, c] of fillIndixes) {
+    for (const [a, b, c] of fillIndexes) {
       ctx.beginPath();
       ctx.fillStyle = `hsla(${Math.random() * 100 + 100},100%,80%,0.35)`;
       ctx.moveTo(fillPoints[a][0] * l, fillPoints[a][1] * l);
@@ -469,7 +454,7 @@ if (process.env.NODE_ENV !== "production") {
       ctx.lineTo(fillPoints[a][0] * l, fillPoints[a][1] * l);
       ctx.fill();
     }
-    for (const [a, b, c] of fillIndixes) {
+    for (const [a, b, c] of fillIndexes) {
       ctx.beginPath();
       ctx.moveTo(fillPoints[a][0] * l, fillPoints[a][1] * l);
       ctx.lineTo(fillPoints[b][0] * l, fillPoints[b][1] * l);
@@ -502,175 +487,103 @@ if (process.env.NODE_ENV !== "production") {
   }
 }
 
-const p0 = generatePerlinNoise(3, 3, 0.1);
-const p1 = generatePerlinNoise(3, 3, 0.7);
-
-const h = (x: number, y: number) => {
-  let h = -0.3;
-  h += p0(x + 1.2, y + 1.16) * 0.2;
-  h += p1(x + 1.7, y + 1.6) * 0.8;
-
-  const r = Math.sqrt(x * x + y * y);
-  const k = 1 - r ** 2;
-
-  h *= -k;
-
-  return h;
-};
-
-const points = Array.from({ length: 300 }, () => {
-  let x = 1;
-  let y = 1;
-  while (x * x + y * y > 1) {
-    x = Math.random() * 2 - 1;
-    y = Math.random() * 2 - 1;
-  }
-
-  return [x, y];
-});
-
-const indexes = getDelaunayTriangulation(points as vec2[]);
-
-const points3d = points.map(([x, z]) => [x, h(x, z), z]);
-
-export const staticVertices: number[] = [];
-let staticColors: number[] = [];
-
-for (const [a, b, c] of indexes) {
-  const A = points3d[a];
-  const B = points3d[b];
-  const C = points3d[c];
-
-  if ((A[0] - C[0]) * (A[2] - B[2]) - (A[2] - C[2]) * (A[0] - B[0]) > 0)
-    staticVertices.push(...A, ...B, ...C);
-  else staticVertices.push(...A, ...C, ...B);
-
-  staticColors.push(0.2, 0.7, 0.25);
-  staticColors.push(0.2, 0.7, 0.25);
-  staticColors.push(0.2, 0.7, 0.25);
-}
-
-const cellFaces = [
-  ...ccells,
-  //
-  // Array.from({ length: 5 }).map((_, i, arr) => {
-  //   // const a = i / arr.length + Math.random() * 0.2;
-  //   const a = i / arr.length;
-  //   const r = 0.4 + Math.random() * 0.2;
-  //   const o: vec3 = [
-  //     //
-  //     Math.sin(a * Math.PI * 2) * r,
-  //     0,
-  //     Math.cos(a * Math.PI * 2) * r,
-  //   ];
-  //   vec3.rotateZ(o, o, zero, 0.3);
-  //   vec3.rotateX(o, o, zero, 0.27);
-  //   o[1] += 0.6;
-  //   return o;
-  // }),
-];
-
 // currently only the cells are activatable,
 // the active face points to the index of the face
 export const activeFaces: number[] = [];
 
-// export const cellFacesIndexes: number[][] = [];
-cellFaces.forEach((face, j) => {
-  const vs = faceToVertices(face as any);
+const fieldsUpdates: (() => void)[] = [];
 
-  for (let i = vs.length / 9; i--; )
-    activeFaces[staticVertices.length / 9 + i] = j;
+// const transform = mat4.create();
+const transform = [] as any;
 
-  staticVertices.push(...vs);
+mat4.multiply(transform, transform, mat4.fromScaling([] as any, [2, 1, 2]));
+mat4.fromTranslation(transform, [-0.5, 0, -0.5]);
 
-  const color = [Math.random(), Math.random(), Math.random()];
+// mat4.fromScaling([] as any, 2);
 
-  for (let i = vs.length / 3; i--; ) staticColors.push(...color);
+for (const cell of ccells) {
+  const vertices = cell.map((v) => vec3.transformMat4([] as any, v, transform));
 
-  // for (let i = vs.length / 3; i--; )
-  // staticColors.push(90 / 255, 92 / 255, 31 / 255);
+  const nn = vec3.cross(
+    [] as any,
+    vec3.sub(tmp1, vertices[1], vertices[0]),
+    vec3.sub(tmp2, vertices[2], vertices[0])
+  );
+  if (nn[1] < 0) vertices.reverse();
 
-  cells.push({ growth: maxGrowth * 0.9, area: 1, type: "growing" } as any);
-});
-// cellFaces.length = 0;
+  vec3.normalize(nn, nn);
 
-// add windmills
-for (let u = 5; u--; ) {
-  let x = 1;
-  let y = 1;
-  while (x * x + y * y > 0.9) {
-    x = Math.random() * 2 - 1;
-    y = Math.random() * 2 - 1;
-  }
+  let a = n;
+  pushFace(vertices, [Math.random(), Math.random(), Math.random()], nn);
 
-  const { vertices, colors } = createWindmill();
+  const i = cells.length;
+  cells.push({
+    growth: maxGrowth * 0.9,
+    area: getPolygonArea(vertices),
+    type: "growing",
+  } as any);
 
-  const s = 0.035;
-  const o = [x, h(x, y), y];
-  const a = Math.random() * Math.PI * 2;
+  fieldsUpdates.push(createField(vertices, up, i));
 
-  for (let i = 0; i < vertices.length; i += 3) {
-    tmp0[0] = vertices[i + 0];
-    tmp0[1] = vertices[i + 1];
-    tmp0[2] = vertices[i + 2];
-
-    vec3.rotateY(tmp0, tmp0, zero, a);
-
-    vertices[i + 0] = tmp0[0] * s + o[0];
-    vertices[i + 1] = tmp0[1] * s + o[1];
-    vertices[i + 2] = tmp0[2] * s + o[2];
-  }
-
-  staticVertices.push(...vertices);
-  staticColors.push(...colors);
+  for (let j = a; j < n; j++) activeFaces[j] = i;
 }
 
-// materials
-const staticMaterial = createMaterial(gl.STATIC_DRAW);
-const dynamicMaterial = createMaterial(gl.DYNAMIC_DRAW);
+for (const indexes of fillIndexes) {
+  const vertices: vec3[] = indexes.map((k) => {
+    const [x, z, y] = fillPoints[k] as any;
+    const p: vec3 = [x, y, z];
+    return vec3.transformMat4(p, p, transform);
+  });
 
-staticMaterial.updateGeometry(
-  new Float32Array(staticColors),
-  new Float32Array(staticVertices),
-  getFlatShadingNormals(
-    gIndexes.subarray(0, staticVertices.length / 3),
-    staticVertices as any
-  )
-);
+  // ensure that the faces are pointed to the up axis
+  const nn = vec3.cross(
+    [] as any,
+    vec3.sub(tmp1, vertices[1], vertices[0]),
+    vec3.sub(tmp2, vertices[2], vertices[0])
+  );
+  if (nn[1] < 0) vertices.reverse();
 
-//@ts-ignore
-staticColors = null;
+  vec3.normalize(nn, nn);
 
-const direction: vec3 = [0, 0, 1];
+  pushFace(vertices, hillColor, nn);
+}
 
-const fieldsUpdates = cellFaces.map((cell, i) =>
-  createField(cell as any, direction, i)
-);
+// // add windmills
+// for (let u = 5; u--; ) {
+//   let x = 1;
+//   let y = 1;
+//   while (x * x + y * y > 0.9) {
+//     x = Math.random() * 2 - 1;
+//     y = Math.random() * 2 - 1;
+//   }
 
-// fieldsUpdates.push(
-//   ...indexes.map((ii) =>
-//     createField(ii.map((i) => points3d[i]) as vec3[], direction, 0)
-//   )
+//   const { vertices, colors } = createWindmill();
+
+//   const s = 0.035;
+//   const o = [x, h(x, y), y];
+//   const a = Math.random() * Math.PI * 2;
+
+//   for (let i = 0; i < vertices.length; i += 3) {
+//     tmp0[0] = vertices[i + 0];
+//     tmp0[1] = vertices[i + 1];
+//     tmp0[2] = vertices[i + 2];
+
+//     vec3.rotateY(tmp0, tmp0, zero, a);
+
+//     vertices[i + 0] = tmp0[0] * s + o[0];
+//     vertices[i + 1] = tmp0[1] * s + o[1];
+//     vertices[i + 2] = tmp0[2] * s + o[2];
+//   }
+
+//   staticVertices.push(...vertices);
+//   staticColors.push(...colors);
+// }
+
+// const fieldsUpdates = cellFaces.map((cell, i) =>
+//   createField(cell as any, direction, i)
 // );
 
-export const draw = () => {
-  // update dynamic buffers
-  resetN();
-
+export const update = () => {
   // add dynamic fields
-  for (const update of fieldsUpdates) update();
-
-  // update particles
-  updateParticles();
-
-  dynamicMaterial.updateGeometry(
-    dynamicColors,
-    dynamicVertices,
-    dynamicNormals,
-    n * 3
-  );
-
-  // draw
-  staticMaterial.draw();
-  dynamicMaterial.draw();
+  // for (const update of fieldsUpdates) update();
 };

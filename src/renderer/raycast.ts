@@ -18,7 +18,12 @@ const v: vec3 = [] as any;
 const tmp: vec3 = [] as any;
 const p: vec3 = [] as any;
 
-export const raycast = (x: number, y: number, vertices: number[]) => {
+export const raycast = (
+  x: number,
+  y: number,
+  vertices: number[],
+  n: number
+) => {
   // get the ray
   mat4.invert(worldMatrixInv, worldMatrix);
   vec3.transformMat4(v, [x, y, 0.5], worldMatrixInv);
@@ -29,8 +34,7 @@ export const raycast = (x: number, y: number, vertices: number[]) => {
   let bestT = Infinity;
   let bestP: vec3 = [0, 0, 0];
   let bestI = -1;
-
-  for (let i = 0; i < vertices.length; i += 9) {
+  for (let i = 0; i < n * 9; i += 9) {
     A[0] = vertices[i + 0 + 0];
     A[1] = vertices[i + 0 + 1];
     A[2] = vertices[i + 0 + 2];

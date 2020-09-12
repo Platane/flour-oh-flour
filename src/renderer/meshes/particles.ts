@@ -3,12 +3,12 @@ import { date } from "../../logic";
 import { tmp0, tmp1, z, zero } from "../../constant";
 import { lookAtMatrix3Inv } from "../camera";
 import {
-  dynamicVertices,
-  dynamicNormals,
-  dynamicColors,
+  vertices,
+  normals,
+  colors,
   n,
   incrementN,
-} from "./sharedBuffer";
+} from "../globalBuffers/dynamic";
 import { lerp } from "../../math/utils";
 
 export const particles: {
@@ -64,17 +64,17 @@ export const update = () => {
         vec3.scale(tmp1, tmp1, s);
         vec3.add(tmp1, tmp1, tmp0);
 
-        dynamicVertices[n * 9 + i * 3 + 0] = tmp1[0];
-        dynamicVertices[n * 9 + i * 3 + 1] = tmp1[1];
-        dynamicVertices[n * 9 + i * 3 + 2] = tmp1[2];
+        vertices[n * 9 + i * 3 + 0] = tmp1[0];
+        vertices[n * 9 + i * 3 + 1] = tmp1[1];
+        vertices[n * 9 + i * 3 + 2] = tmp1[2];
 
-        dynamicColors[n * 9 + i * 3 + 0] = color[0];
-        dynamicColors[n * 9 + i * 3 + 1] = color[1];
-        dynamicColors[n * 9 + i * 3 + 2] = color[2];
+        colors[n * 9 + i * 3 + 0] = color[0];
+        colors[n * 9 + i * 3 + 1] = color[1];
+        colors[n * 9 + i * 3 + 2] = color[2];
 
-        dynamicNormals[n * 9 + i * 3 + 0] = 0;
-        dynamicNormals[n * 9 + i * 3 + 1] = 0;
-        dynamicNormals[n * 9 + i * 3 + 2] = 1;
+        normals[n * 9 + i * 3 + 0] = 0;
+        normals[n * 9 + i * 3 + 1] = 0;
+        normals[n * 9 + i * 3 + 2] = 1;
       }
 
       incrementN();
