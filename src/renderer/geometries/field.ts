@@ -7,7 +7,7 @@ import { hintColor, wheatColorEnd } from "../colors";
 import { getWindDirection } from "./wind";
 import { particles } from "../meshes/particles";
 import { pushFace } from "../meshes/sharedBuffer";
-import { isInsideHull } from "../../math/hull";
+import { isInsidePolygon } from "../../math/convexPolygon";
 
 const wheatSpace = 0.07;
 const lineSpace = 0.06;
@@ -64,7 +64,8 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
         il + (Math.random() - 0.5) * lineSpace * 0.3
       );
 
-      if (isInsideHull(cell, n, tmp1)) wheatOrigins.push(tmp1.slice() as any);
+      if (isInsidePolygon(cell, n, tmp1))
+        wheatOrigins.push(tmp1.slice() as any);
     }
 
   const lcell = cells[i];
@@ -114,7 +115,7 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
 
           const positionA: vec3 = [999999, 999999, 999999];
 
-          while (!isInsideHull(cell, n, positionA)) {
+          while (!isInsidePolygon(cell, n, positionA)) {
             vec3.copy(positionA, c);
             vec3.scaleAndAdd(
               positionA,
@@ -165,7 +166,7 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
         let x = 0;
         let y = 0;
 
-        while (x * x + y * y < 0.03 || !isInsideHull(cell, n, positionA)) {
+        while (x * x + y * y < 0.03 || !isInsidePolygon(cell, n, positionA)) {
           x = (Math.random() - 0.5) * 2;
           y = (Math.random() - 0.5) * 2;
 

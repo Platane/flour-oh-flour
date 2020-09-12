@@ -6,7 +6,7 @@ import { getDelaunayTriangulation } from "../../math/getDelaunayTriangulation";
 import { faceToVertices } from "../utils/faceToVertices";
 import { createWindmill } from "../geometries/windmill";
 import { cells, maxGrowth } from "../../logic";
-import { zero, tmp0, epsilon, tmp1, tmp2 } from "../../constant";
+import { zero, tmp0, epsilon, tmp1, tmp2, up } from "../../constant";
 import { createField } from "../geometries/field";
 import {
   dynamicVertices,
@@ -19,6 +19,13 @@ import { update as updateParticles } from "./particles";
 import { gl } from "../../canvas";
 import { getVoronoiTesselation } from "../../math/getVoronoiTesselation";
 import { createCanvas } from "../../debugCanvas";
+import {
+  getPolygonArea,
+  getPolygonBoundingSphereRadius,
+  getPolygonCenter,
+  isInsidePolygon,
+} from "../../math/convexPolygon";
+import { getSegmentIntersection } from "../../math/getSegmentIntersection";
 
 //
 // generate an interesting potato shaped hull
@@ -89,7 +96,7 @@ const distanceToHull = (x: number, y: number) => {
 
   for (let k = 26; k--; ) {
     const i = epsilon + Math.random() * L;
-    const j = i * (Math.random() - 0.5) * 0.6;
+    const j = i * (Math.random() - 0.5) * 0.7;
 
     const px = x + i * v[0] + j * v[1];
     const py = y + i * v[1] - j * v[0];
@@ -130,30 +137,49 @@ const frozenVertices: boolean[] = [];
 
 const ccells: vec3[][] = [];
 
-const nCell = 16;
+const nCell = 8;
 
 while (cellCandidates.faces.length && ccells.length < nCell) {
   const k = Math.floor(Math.random() * cellCandidates.faces.length);
   const [indexes] = cellCandidates.faces.splice(k, 1);
 
-  const pointOutside = indexes.some(
-    (i) =>
-      !insideUnitSquare(
-        cellCandidatesVertices[i][0],
-        cellCandidatesVertices[i][2]
-      ) ||
-      distanceToHull(
-        cellCandidatesVertices[i][0],
-        cellCandidatesVertices[i][2]
-      ) < 0.14
-  );
+  const vertices = indexes.map((i) => cellCandidatesVertices[i]);
 
-  if (pointOutside) continue;
+  // if some point is outside the hull
+  // ignore
+  if (
+    vertices.some(
+      (v) => !insideUnitSquare(v[0], v[2]) || distanceToHull(v[0], v[2]) < 0.14
+    )
+  )
+    continue;
 
+  // if the shape is not pretty enough
+  // ignore
+
+  const boundingSphereArea =
+    getPolygonBoundingSphereRadius(vertices) ** 2 * Math.PI;
+
+  const hullArea = getPolygonArea(vertices);
+  const hullCompactness = hullArea / boundingSphereArea;
+
+  if (hullArea < 0.01 || hullCompactness < 0.4) continue;
+
+  console.log(hullArea, hullCompactness);
+
+  // some point are already frozen,
+  // meaning we can no longer move them
   const anchors = indexes.filter((i) => frozenVertices[i]);
 
+  // if more than two point are frozen
+  // ignore
   if (anchors.length > 2) continue;
 
+  // get 3 point to serve as anchor
+  // those point will define the plane of the hull
+  // all the other point will be move to fit inside the plane
+  //
+  // its better if the anchor points are far away from each other
   while (anchors.length < 3) {
     let maxD = 0;
     let bestI = 0;
@@ -177,6 +203,7 @@ while (cellCandidates.faces.length && ccells.length < nCell) {
     anchors.push(bestI);
   }
 
+  // normal of the final plane
   const n = vec3.cross(
     [] as any,
     vec3.sub(
@@ -192,6 +219,8 @@ while (cellCandidates.faces.length && ccells.length < nCell) {
   );
   vec3.normalize(n, n);
 
+  // move the vertices inside the plan
+  // and flag then as frozen
   for (const i of indexes) {
     if (!anchors.includes(i)) {
       const d = vec3.dot(
@@ -210,47 +239,159 @@ while (cellCandidates.faces.length && ccells.length < nCell) {
         -d
       );
 
-      const dd = vec3.dot(
-        n,
-        vec3.sub(
-          tmp1,
-          cellCandidatesVertices[i],
-          cellCandidatesVertices[anchors[0]]
-        )
-      );
-
-      if (Math.abs(dd) > 0.00001) {
-        console.log("----");
-      }
-
       frozenVertices[i] = true;
     }
   }
 
+  // ensure that the faces are pointed to the up axis
   const nn = vec3.cross(
     [] as any,
-    vec3.sub(
-      tmp1,
-      cellCandidatesVertices[indexes[1]],
-      cellCandidatesVertices[indexes[0]]
-    ),
-    vec3.sub(
-      tmp2,
-      cellCandidatesVertices[indexes[2]],
-      cellCandidatesVertices[indexes[0]]
-    )
+    vec3.sub(tmp1, vertices[1], vertices[0]),
+    vec3.sub(tmp2, vertices[2], vertices[0])
   );
+  if (nn[1] < 0) vertices.reverse();
 
-  if (nn[1] < 0) indexes.reverse();
+  // add to the cell list
+  ccells.push(vertices);
+}
+// ccells[0].splice(2, 3);
+// ccells[0].splice(2, 1);
 
-  const cell = indexes.map((i) => cellCandidatesVertices[i]);
+//
+// get another point cloud to fill the void between cells
+//
 
-  ccells.push(cell);
+const fillPoints: vec2[] = ccells
+  .flat(1)
+  .filter((x, i, arr) => i === arr.indexOf(x))
+  .map(([x, y, z]: any) => [x, z, y] as any);
+
+const fillPointsSplit: vec2[] = [];
+
+let k = 0;
+while (k < 100 && fillPoints.length < 150) {
+  const x = Math.random();
+  const y = Math.random();
+
+  const p: vec2 = [x, y];
+
+  if (
+    isInsideHull(x, y) &&
+    !ccells.some((cell) => isInsidePolygon(cell, up, [x, 0, y])) &&
+    fillPoints.every((p0) => vec2.squaredDistance(p, p0) > 0.0005)
+  ) {
+    k = 0;
+    fillPoints.push(p);
+  } else {
+    k++;
+  }
 }
 
+// fillPoints.push([0.5, 0.53]);
+
+const fillIndixes = getDelaunayTriangulation(fillPoints);
+
+//
+// split the triangle edge on cell edge
+//
+
+const cellEdges: [vec3, vec3][] = [];
+for (const cell of ccells)
+  for (let u = cell.length; u--; ) {
+    const A = cell[u];
+    const B = cell[(u + 1) % cell.length];
+
+    if (
+      !cellEdges.some(([a, b]) => (a === A && b === B) || (b === A && a === B))
+    )
+      cellEdges.push([A, B]);
+  }
+
+for (const edge of cellEdges) {
+  edge[0] = [edge[0][0], edge[0][2], edge[0][1]];
+  edge[1] = [edge[1][0], edge[1][2], edge[1][1]];
+}
+
+for (let k = 3; k--; ) {
+  ll: for (let i = fillIndixes.length; i--; )
+    for (let j = 3; j--; ) {
+      // each triangle edge
+      const a1 = fillIndixes[i][j];
+      const a2 = fillIndixes[i][(j + 1) % 3];
+
+      const A1 = fillPoints[a1];
+      const A2 = fillPoints[a2];
+
+      for (const [B1, B2] of cellEdges) {
+        const out = getSegmentIntersection(B1 as vec2, B2 as vec2, A1, A2);
+
+        if (
+          out &&
+          out[2] > epsilon &&
+          1 - out[2] > epsilon &&
+          out[3] > epsilon &&
+          1 - out[3] > epsilon
+        ) {
+          const E = vec3.lerp([] as any, B1, B2, out[2]);
+          console.log("ii", a1, a2);
+
+          const e = fillPoints.length;
+          fillPoints.push(E as any);
+          fillPointsSplit.push(E as any);
+
+          for (let j = fillIndixes.length; j--; ) {
+            if (fillIndixes[j].includes(a1) && fillIndixes[j].includes(a2)) {
+              const [indices] = fillIndixes.splice(j, 1);
+
+              // decrement i
+              if (j !== i) i = Math.max(0, i - 1);
+
+              let a3 = 0;
+              for (const x of indices) if (x !== a1 && x !== a2) a3 = x;
+
+              fillIndixes.push([a1, a3, e], [a2, a3, e]);
+            }
+          }
+
+          continue ll;
+        }
+      }
+    }
+}
+
+//
+// remove triangle that are inside cells
+//
+for (let i = fillIndixes.length; i--; ) {
+  const c = getPolygonCenter(
+    [] as any,
+    fillIndixes[i].map((k) => fillPoints[k] as any)
+  );
+
+  if (ccells.some((cell) => isInsidePolygon(cell, up, [c[0], 0, c[1]])))
+    fillIndixes.splice(i, 1);
+}
+
+//
+// remove ugly outer shell
+//
+// TODO
+for (let i = fillIndixes.length; i--; ) {}
+
+//
+// form the triangles
+//
+const fillingTriangles = fillIndixes.map((indexes) =>
+  indexes.map((k) => {
+    const [x, z, y] = fillPoints[k] as any;
+
+    return [x, y ?? getAltitude(x, z), z];
+  })
+);
+
 if (process.env.NODE_ENV !== "production") {
-  const l = 240;
-  {
+  const l = 600;
+  if (false) {
     const c = createCanvas();
     const ctx = c.getContext("2d")!;
 
@@ -272,7 +413,7 @@ if (process.env.NODE_ENV !== "production") {
   }
   {
     const c = createCanvas();
-    c.style.left = 5 + l + "px";
+    // c.style.left = 5 + l + "px";
     const ctx = c.getContext("2d")!;
 
     for (let sx = l; sx--; )
@@ -282,26 +423,69 @@ if (process.env.NODE_ENV !== "production") {
 
         ctx.fillStyle = `#a00`;
         if (isInsideHull(x, y)) {
-          const a = getAltitude(x, y);
+          // const a = getAltitude(x, y);
 
-          ctx.fillStyle = `hsl(${a * 320},80%,80%)`;
+          ctx.fillStyle = `#fff`;
+          // ctx.fillStyle = `hsl(${a * 320},80%,80%)`;
           // ctx.fillStyle = `hsl(${a * 120},0%,${a * 300}%)`;
         }
 
         ctx.fillRect(sx, sy, 1, 1);
       }
 
-    ctx.lineWidth = 0.5;
-    ctx.fillStyle = `#ab3`;
-    for (const cell of ccells) {
+    // ctx.lineWidth = 0.5;
+    // ctx.fillStyle = `#ab3`;
+    // for (const cell of ccells) {
+    //   ctx.fillStyle = `hsl(${Math.random() * 80 + 280},100%,80%)`;
+
+    //   ctx.beginPath();
+    //   ctx.moveTo(cell[0][0] * l, cell[0][2] * l);
+    //   for (let i = cell.length; i--; )
+    //     ctx.lineTo(cell[i][0] * l, cell[i][2] * l);
+    //   ctx.fill();
+    //   ctx.stroke();
+    // }
+
+    ctx.fillStyle = `#23e`;
+    for (const p of fillPoints) {
+      const r = 2;
       ctx.beginPath();
-      ctx.moveTo(cell[0][0] * l, cell[0][2] * l);
-      for (let i = cell.length; i--; )
-        ctx.lineTo(cell[i][0] * l, cell[i][2] * l);
+      ctx.fillRect(p[0] * l - r / 2, p[1] * l - r / 2, r, r);
+    }
+
+    for (const p of fillPointsSplit) {
+      const r = 6;
+      ctx.beginPath();
+      ctx.fillRect(p[0] * l - r / 2, p[1] * l - r / 2, r, r);
+    }
+
+    ctx.lineWidth = 0.25;
+    for (const [a, b, c] of fillIndixes) {
+      ctx.beginPath();
+      ctx.fillStyle = `hsla(${Math.random() * 100 + 100},100%,80%,0.35)`;
+      ctx.moveTo(fillPoints[a][0] * l, fillPoints[a][1] * l);
+      ctx.lineTo(fillPoints[b][0] * l, fillPoints[b][1] * l);
+      ctx.lineTo(fillPoints[c][0] * l, fillPoints[c][1] * l);
+      ctx.lineTo(fillPoints[a][0] * l, fillPoints[a][1] * l);
       ctx.fill();
+    }
+    for (const [a, b, c] of fillIndixes) {
+      ctx.beginPath();
+      ctx.moveTo(fillPoints[a][0] * l, fillPoints[a][1] * l);
+      ctx.lineTo(fillPoints[b][0] * l, fillPoints[b][1] * l);
+      ctx.lineTo(fillPoints[c][0] * l, fillPoints[c][1] * l);
+      ctx.lineTo(fillPoints[a][0] * l, fillPoints[a][1] * l);
       ctx.stroke();
     }
 
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#513";
+    for (const [a, b] of cellEdges) {
+      ctx.beginPath();
+      ctx.moveTo(a[0] * l, a[1] * l);
+      ctx.lineTo(b[0] * l, b[1] * l);
+      ctx.stroke();
+    }
     // for (const indexes of cellCandidates.faces) {
     //   ctx.beginPath();
     //   ctx.moveTo(

@@ -1,6 +1,6 @@
-import { getHullArea } from "../hull";
 import { vec3 } from "gl-matrix";
 import { zero } from "../../constant";
+import { getPolygonArea } from "../convexPolygon";
 
 const square: vec3[] = [
   [0, 0, 0],
@@ -16,19 +16,19 @@ const circle: vec3[] = Array.from({ length: 40 }).map((_, i, arr) => [
 ]);
 
 it("should compute area of a square", () => {
-  expect(getHullArea(square)).toBeCloseTo(1);
+  expect(getPolygonArea(square)).toBeCloseTo(1);
 });
 it.only("should compute area of a quasi-circle", () => {
-  expect(getHullArea(circle)).toBeCloseTo(Math.PI, 1);
+  expect(getPolygonArea(circle)).toBeCloseTo(Math.PI, 1);
 });
 
 it("should compute area of a rotated square", () => {
   expect(
-    getHullArea(square.map((x) => vec3.rotateY([] as any, x, zero, 543)))
+    getPolygonArea(square.map((x) => vec3.rotateY([] as any, x, zero, 543)))
   ).toBeCloseTo(1);
 });
 it("should compute area of a rotated circle", () => {
   expect(
-    getHullArea(circle.map((x) => vec3.rotateY([] as any, x, zero, 543)))
+    getPolygonArea(circle.map((x) => vec3.rotateY([] as any, x, zero, 543)))
   ).toBeCloseTo(Math.PI, 1);
 });

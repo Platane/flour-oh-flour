@@ -1,6 +1,5 @@
 import { vec2 } from "gl-matrix";
-
-const epsilon = 1e-6;
+import { epsilon } from "../constant";
 
 export const getCircumCenter = (A: vec2, B: vec2, C: vec2): vec2 | null => {
   // define m1 as middle of AB

@@ -1,4 +1,4 @@
-import { epsilon } from "../constant";
+import { epsilon, tmp0 } from "../constant";
 import { vec3 } from "gl-matrix";
 
 /**
@@ -23,12 +23,12 @@ export const cross = (out: vec3, A1: vec3, A2: vec3, B1: vec3, B2: vec3) => {
 export const getNormalVector = (out: vec3, [A, B, C]: vec3[]) =>
   cross(out, A, B, A, C);
 
-export const isInsideHull = (hull: vec3[], n: vec3, p: vec3) => {
+export const isInsidePolygon = (points: vec3[], n: vec3, p: vec3) => {
   let x = 0;
 
-  for (let i = 0; i < hull.length; i++) {
-    const A = hull[i];
-    const B = hull[(i + 1) % hull.length];
+  for (let i = 0; i < points.length; i++) {
+    const A = points[i];
+    const B = points[(i + 1) % points.length];
 
     const ux = B[0] - A[0];
     const uy = B[1] - A[1];
@@ -69,7 +69,7 @@ const getTriangleArea = (A: vec3, B: vec3, C: vec3) => {
   return Math.hypot(nx, ny, nz) / 2;
 };
 
-export const getHullArea = (points: vec3[]) => {
+export const getPolygonArea = (points: vec3[]) => {
   let a = 0;
   for (let i = 0; i < points.length - 1; i++)
     a += getTriangleArea(points[0], points[i], points[i + 1]);
@@ -77,7 +77,26 @@ export const getHullArea = (points: vec3[]) => {
   return a;
 };
 
-export const getHullBoundingBoxDimension = (points: vec3[]) => [
+export const getPolygonCenter = (out: vec3, points: vec3[]) => {
+  out[0] = 0;
+  out[1] = 0;
+  out[2] = 0;
+
+  for (let i = points.length; i--; )
+    vec3.scaleAndAdd(out, out, points[i], 1 / points.length);
+
+  return out;
+};
+
+export const getPolygonBoundingSphereRadius = (points: vec3[]) => {
+  const c = getPolygonCenter([] as any, points);
+  let dd = 0;
+  for (let i = points.length; i--; )
+    dd = Math.max(dd, vec3.squaredDistance(points[i], c));
+  return Math.sqrt(dd);
+};
+
+export const getPolygonBoundingBoxDimension = (points: vec3[]) => [
   Math.max(...points.map((v) => v[0])) - Math.min(...points.map((v) => v[0])),
   Math.max(...points.map((v) => v[1])) - Math.min(...points.map((v) => v[1])),
   Math.max(...points.map((v) => v[2])) - Math.min(...points.map((v) => v[2])),
