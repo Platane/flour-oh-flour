@@ -1,19 +1,11 @@
 import { generatePerlinNoise } from "../../math/generatePerlinNoise";
 import { vec2, vec3, mat4 } from "gl-matrix";
 import { getDelaunayTriangulation } from "../../math/getDelaunayTriangulation";
-import { cells, maxGrowth } from "../../logic";
-import { zero, tmp0, epsilon, tmp1, tmp2, up } from "../../constant";
+import { cells as logicCells, maxGrowth } from "../../logic";
+import { epsilon, tmp1, tmp2, up, z } from "../../constant";
 import { createField } from "../geometries/field";
-import {
-  vertices,
-  normals,
-  colors,
-  incrementN,
-  n,
-  pushFace,
-} from "../globalBuffers/static";
+import { n, pushFace } from "../globalBuffers/static";
 import { getVoronoiTesselation } from "../../math/getVoronoiTesselation";
-import { createCanvas } from "../../debugCanvas";
 import {
   getPolygonArea,
   getPolygonBoundingSphereRadius,
@@ -22,6 +14,12 @@ import {
 } from "../../math/convexPolygon";
 import { getSegmentIntersection } from "../../math/getSegmentIntersection";
 import { hillColor, dirtColor } from "../colors";
+
+//
+// constant
+//
+const cellCloudN = 60;
+const triangleCloudN = 800;
 
 //
 // generate an interesting potato shaped hull
@@ -35,21 +33,21 @@ const gauss = (cx: number, cy: number, tau: number, x: number, y: number) => {
   return Math.exp(-0.5 * d);
 };
 
-const hullPerlin = generatePerlinNoise(1, 1, 0.35);
+const potatoPerlin = generatePerlinNoise(1, 1, 0.35);
 
-const hullBlobs = Array.from({ length: 6 }, () => [
+const potatoBlobs = Array.from({ length: 6 }, () => [
   Math.random() * 0.46 + 0.27,
   Math.random() * 0.46 + 0.27,
 
   (1 + Math.random()) * 0.1,
 ]);
 
-const isInsideHull = (x: number, y: number) => {
-  const g = hullBlobs.reduce(
+export const isInsidePotato = (x: number, y: number) => {
+  const g = potatoBlobs.reduce(
     (sum, [cx, cy, tau]) => sum + gauss(cx, cy, tau, x, y),
     0
   );
-  const p = hullPerlin(x, y) * 1.7;
+  const p = potatoPerlin(x, y) * 1.7;
 
   const d = 0.5 - Math.sqrt((x - 0.5) ** 2 + (y - 0.5) ** 2);
 
@@ -61,21 +59,21 @@ const isInsideHull = (x: number, y: number) => {
 //
 // pick random point inside the hull
 //
-const hullPoints: vec2[] = [];
-while (hullPoints.length < 35) {
+const potatoPoints: vec2[] = [];
+while (potatoPoints.length < cellCloudN) {
   const x = Math.random();
   const y = Math.random();
 
-  if (isInsideHull(x, y)) hullPoints.push([x, y]);
+  if (isInsidePotato(x, y)) potatoPoints.push([x, y]);
 }
 
 //
 // generate the height function
 //
-const hullCenter: vec2 = [0, 0];
-for (let i = hullPoints.length; i--; ) {
-  hullCenter[0] += hullPoints[i][0] / hullPoints.length;
-  hullCenter[1] += hullPoints[i][1] / hullPoints.length;
+export const potatoCenter: vec2 = [0, 0];
+for (let i = potatoPoints.length; i--; ) {
+  potatoCenter[0] += potatoPoints[i][0] / potatoPoints.length;
+  potatoCenter[1] += potatoPoints[i][1] / potatoPoints.length;
 }
 
 const insideUnitSquare = (x: number, y: number) =>
@@ -83,7 +81,7 @@ const insideUnitSquare = (x: number, y: number) =>
 
 const distanceToHull = (x: number, y: number) => {
   const v = vec2.set([] as any, x, y);
-  vec2.sub(v, v, hullCenter);
+  vec2.sub(v, v, potatoCenter);
   vec2.normalize(v, v);
 
   let minD = Infinity;
@@ -98,7 +96,7 @@ const distanceToHull = (x: number, y: number) => {
     const py = y + i * v[1] - j * v[0];
 
     const d = i * i + j * j;
-    if (d < minD && (!insideUnitSquare(px, py) || !isInsideHull(px, py)))
+    if (d < minD && (!insideUnitSquare(px, py) || !isInsidePotato(px, py)))
       minD = d;
   }
 
@@ -117,25 +115,25 @@ const getAltitude = (x: number, y: number) => {
 
   const d = distanceToHull(x, y);
 
-  return (0.7 * d + h * d) * 0.1;
+  return (0.7 * d + h * d) * 0.4;
 };
 
 //
 // pick some cells
 //
 
-const cellCandidates = getVoronoiTesselation(hullPoints);
+const cellCandidates = getVoronoiTesselation(potatoPoints);
 const cellCandidatesVertices = cellCandidates.vertices.map(
   ([x, y]: any) =>
-    [x, insideUnitSquare(x, y) ? getAltitude(x, y) : 0, y] as vec3
+    [x, y, insideUnitSquare(x, y) ? getAltitude(x, y) : 0] as vec3
 );
 const frozenVertices: boolean[] = [];
 
-const ccells: vec3[][] = [];
+export const cells: vec3[][] = [];
 
-const nCell = 8;
+const nCell = 18;
 
-while (cellCandidates.faces.length && ccells.length < nCell) {
+while (cellCandidates.faces.length && cells.length < nCell) {
   const k = Math.floor(Math.random() * cellCandidates.faces.length);
   const [indexes] = cellCandidates.faces.splice(k, 1);
 
@@ -145,7 +143,7 @@ while (cellCandidates.faces.length && ccells.length < nCell) {
   // ignore
   if (
     vertices.some(
-      (v) => !insideUnitSquare(v[0], v[2]) || distanceToHull(v[0], v[2]) < 0.14
+      (v) => !insideUnitSquare(v[0], v[1]) || distanceToHull(v[0], v[1]) < 0.14
     )
   )
     continue;
@@ -214,7 +212,6 @@ while (cellCandidates.faces.length && ccells.length < nCell) {
   vec3.normalize(n, n);
 
   // move the vertices inside the plan
-  // and flag then as frozen
   for (const i of indexes) {
     if (!anchors.includes(i)) {
       const d = vec3.dot(
@@ -232,61 +229,57 @@ while (cellCandidates.faces.length && ccells.length < nCell) {
         n,
         -d
       );
-
-      frozenVertices[i] = true;
     }
   }
 
-  // ensure that the faces are pointed to the up axis
-  const nn = vec3.cross(
-    [] as any,
-    vec3.sub(tmp1, vertices[1], vertices[0]),
-    vec3.sub(tmp2, vertices[2], vertices[0])
-  );
-  if (nn[1] < 0) vertices.reverse();
+  // and flag then as frozen
+  for (const i of indexes) frozenVertices[i] = true;
 
   // add to the cell list
-  ccells.push(vertices);
+  cells.push(vertices);
 }
 
 //
 // get another point cloud to fill the void between cells
 //
 
-const fillPoints: vec2[] = ccells
+export const fillPoints: vec3[] = cells
   .flat(1)
-  .filter((x, i, arr) => i === arr.indexOf(x))
-  .map(([x, y, z]: any) => [x, z, y] as any);
+  .filter((x, i, arr) => i === arr.indexOf(x));
 
-const fillPointsSplit: vec2[] = [];
+fillPoints.push(...cells.map((cell) => getPolygonCenter([] as any, cell)));
 
 let k = 0;
-while (k < 100 && fillPoints.length < 160) {
+while (k < 100 && fillPoints.length < triangleCloudN) {
   const x = Math.random();
   const y = Math.random();
 
   const p: vec2 = [x, y];
 
   if (
-    isInsideHull(x, y) &&
-    !ccells.some((cell) => isInsidePolygon(cell, up, [x, 0, y])) &&
-    fillPoints.every((p0) => vec2.squaredDistance(p, p0) > 0.0005)
+    isInsidePotato(x, y) &&
+    !cells.some((cell) => isInsidePolygon(cell, z, [x, y, 0])) &&
+    fillPoints.every((p0) => vec2.squaredDistance(p, p0 as any) > 0.0005)
   ) {
     k = 0;
-    fillPoints.push(p);
+    p.push(getAltitude(x, y));
+    fillPoints.push(p as any);
   } else {
     k++;
   }
 }
 
-const fillIndexes = getDelaunayTriangulation(fillPoints);
+export const originalFillPoints = fillPoints.slice();
+
+export const fillIndexes = getDelaunayTriangulation(fillPoints as any[]);
+export const originalFillIndexes = fillIndexes.slice();
 
 //
 // split the triangle edge on cell edge
 //
 
 const cellEdges: [vec3, vec3][] = [];
-for (const cell of ccells)
+for (const cell of cells)
   for (let u = cell.length; u--; ) {
     const A = cell[u];
     const B = cell[(u + 1) % cell.length];
@@ -296,11 +289,6 @@ for (const cell of ccells)
     )
       cellEdges.push([A, B]);
   }
-
-for (const edge of cellEdges) {
-  edge[0] = [edge[0][0], edge[0][2], edge[0][1]];
-  edge[1] = [edge[1][0], edge[1][2], edge[1][1]];
-}
 
 for (let k = 3; k--; ) {
   ll: for (let i = fillIndexes.length; i--; )
@@ -313,7 +301,12 @@ for (let k = 3; k--; ) {
       const A2 = fillPoints[a2];
 
       for (const [B1, B2] of cellEdges) {
-        const out = getSegmentIntersection(B1 as vec2, B2 as vec2, A1, A2);
+        const out = getSegmentIntersection(
+          B1 as vec2,
+          B2 as vec2,
+          A1 as vec2,
+          A2 as vec2
+        );
 
         if (
           out &&
@@ -325,8 +318,7 @@ for (let k = 3; k--; ) {
           const E = vec3.lerp([] as any, B1, B2, out[2]);
 
           const e = fillPoints.length;
-          fillPoints.push(E as any);
-          fillPointsSplit.push(E as any);
+          fillPoints.push(E);
 
           for (let j = fillIndexes.length; j--; ) {
             if (fillIndexes[j].includes(a1) && fillIndexes[j].includes(a2)) {
@@ -357,7 +349,7 @@ for (let i = fillIndexes.length; i--; ) {
     fillIndexes[i].map((k) => fillPoints[k] as any)
   );
 
-  if (ccells.some((cell) => isInsidePolygon(cell, up, [c[0], 0, c[1]])))
+  if (cells.some((cell) => isInsidePolygon(cell, z, [c[0], c[1], 0])))
     fillIndexes.splice(i, 1);
 }
 
@@ -374,119 +366,6 @@ for (let i = fillIndexes.length; i--; ) {}
 for (const p of fillPoints)
   if (p.length === 2) (p as any).push(getAltitude(p[0], p[1]));
 
-if (process.env.NODE_ENV !== "production") {
-  const l = 300;
-  if (false) {
-    const c = createCanvas();
-    const ctx = c.getContext("2d")!;
-
-    for (let sx = l; sx--; )
-      for (let sy = l; sy--; ) {
-        const x = sx / l;
-        const y = sy / l;
-
-        ctx.fillStyle = `#a00`;
-        if (isInsideHull(x, y)) {
-          const distance = distanceToHull(x, y);
-
-          ctx.fillStyle = `hsl(${distance * 120},80%,80%)`;
-          ctx.fillStyle = `hsl(${distance * 120},0%,${distance * 100}%)`;
-        }
-
-        ctx.fillRect(sx, sy, 1, 1);
-      }
-  }
-  {
-    const c = createCanvas();
-    // c.style.left = 5 + l + "px";
-    const ctx = c.getContext("2d")!;
-
-    for (let sx = l; sx--; )
-      for (let sy = l; sy--; ) {
-        const x = sx / l;
-        const y = sy / l;
-
-        ctx.fillStyle = `#a00`;
-        if (isInsideHull(x, y)) {
-          // const a = getAltitude(x, y);
-
-          ctx.fillStyle = `#fff`;
-          // ctx.fillStyle = `hsl(${a * 320},80%,80%)`;
-          // ctx.fillStyle = `hsl(${a * 120},0%,${a * 300}%)`;
-        }
-
-        ctx.fillRect(sx, sy, 1, 1);
-      }
-
-    // ctx.lineWidth = 0.5;
-    // ctx.fillStyle = `#ab3`;
-    // for (const cell of ccells) {
-    //   ctx.fillStyle = `hsl(${Math.random() * 80 + 280},100%,80%)`;
-
-    //   ctx.beginPath();
-    //   ctx.moveTo(cell[0][0] * l, cell[0][2] * l);
-    //   for (let i = cell.length; i--; )
-    //     ctx.lineTo(cell[i][0] * l, cell[i][2] * l);
-    //   ctx.fill();
-    //   ctx.stroke();
-    // }
-
-    ctx.fillStyle = `#23e`;
-    for (const p of fillPoints) {
-      const r = 2;
-      ctx.beginPath();
-      ctx.fillRect(p[0] * l - r / 2, p[1] * l - r / 2, r, r);
-    }
-
-    for (const p of fillPointsSplit) {
-      const r = 6;
-      ctx.beginPath();
-      ctx.fillRect(p[0] * l - r / 2, p[1] * l - r / 2, r, r);
-    }
-
-    ctx.lineWidth = 0.25;
-    for (const [a, b, c] of fillIndexes) {
-      ctx.beginPath();
-      ctx.fillStyle = `hsla(${Math.random() * 100 + 100},100%,80%,0.35)`;
-      ctx.moveTo(fillPoints[a][0] * l, fillPoints[a][1] * l);
-      ctx.lineTo(fillPoints[b][0] * l, fillPoints[b][1] * l);
-      ctx.lineTo(fillPoints[c][0] * l, fillPoints[c][1] * l);
-      ctx.lineTo(fillPoints[a][0] * l, fillPoints[a][1] * l);
-      ctx.fill();
-    }
-    for (const [a, b, c] of fillIndexes) {
-      ctx.beginPath();
-      ctx.moveTo(fillPoints[a][0] * l, fillPoints[a][1] * l);
-      ctx.lineTo(fillPoints[b][0] * l, fillPoints[b][1] * l);
-      ctx.lineTo(fillPoints[c][0] * l, fillPoints[c][1] * l);
-      ctx.lineTo(fillPoints[a][0] * l, fillPoints[a][1] * l);
-      ctx.stroke();
-    }
-
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "#513";
-    for (const [a, b] of cellEdges) {
-      ctx.beginPath();
-      ctx.moveTo(a[0] * l, a[1] * l);
-      ctx.lineTo(b[0] * l, b[1] * l);
-      ctx.stroke();
-    }
-    // for (const indexes of cellCandidates.faces) {
-    //   ctx.beginPath();
-    //   ctx.moveTo(
-    //     cellCandidates.vertices[indexes[0]][0] * l,
-    //     cellCandidates.vertices[indexes[0]][1] * l
-    //   );
-    //   for (let i = indexes.length; i--; )
-    //     ctx.lineTo(
-    //       cellCandidates.vertices[indexes[i]][0] * l,
-    //       cellCandidates.vertices[indexes[i]][1] * l
-    //     );
-    //   ctx.stroke();
-    // }
-  }
-}
-
 // currently only the cells are activatable,
 // the active face points to the index of the face
 export const activeFaces: number[] = [];
@@ -494,14 +373,19 @@ export const activeFaces: number[] = [];
 const fieldsUpdates: (() => void)[] = [];
 
 // const transform = mat4.create();
-const transform = [] as any;
+const transform = mat4.create();
 
-mat4.multiply(transform, transform, mat4.fromScaling([] as any, [2, 1, 2]));
-mat4.fromTranslation(transform, [-0.5, 0, -0.5]);
+mat4.multiply(transform, transform, mat4.fromScaling([] as any, [2, -1, 2]));
+mat4.multiply(
+  transform,
+  transform,
+  mat4.fromTranslation([] as any, [-0.5, 0, -0.5])
+);
+mat4.multiply(transform, transform, mat4.fromXRotation([] as any, Math.PI / 2));
 
 // mat4.fromScaling([] as any, 2);
 
-for (const cell of ccells) {
+for (const cell of cells) {
   const vertices = cell.map((v) => vec3.transformMat4([] as any, v, transform));
 
   const nn = vec3.cross(
@@ -509,15 +393,18 @@ for (const cell of ccells) {
     vec3.sub(tmp1, vertices[1], vertices[0]),
     vec3.sub(tmp2, vertices[2], vertices[0])
   );
-  if (nn[1] < 0) vertices.reverse();
+  if (nn[1] < 0) {
+    vertices.reverse();
+    vec3.scale(nn, nn, -1);
+  }
 
   vec3.normalize(nn, nn);
 
   let a = n;
   pushFace(vertices, [Math.random(), Math.random(), Math.random()], nn);
 
-  const i = cells.length;
-  cells.push({
+  const i = logicCells.length;
+  logicCells.push({
     growth: maxGrowth * 0.9,
     area: getPolygonArea(vertices),
     type: "growing",
@@ -529,11 +416,9 @@ for (const cell of ccells) {
 }
 
 for (const indexes of fillIndexes) {
-  const vertices: vec3[] = indexes.map((k) => {
-    const [x, z, y] = fillPoints[k] as any;
-    const p: vec3 = [x, y, z];
-    return vec3.transformMat4(p, p, transform);
-  });
+  const vertices = indexes.map((k) =>
+    vec3.transformMat4([] as any, fillPoints[k], transform)
+  );
 
   // ensure that the faces are pointed to the up axis
   const nn = vec3.cross(
@@ -541,7 +426,10 @@ for (const indexes of fillIndexes) {
     vec3.sub(tmp1, vertices[1], vertices[0]),
     vec3.sub(tmp2, vertices[2], vertices[0])
   );
-  if (nn[1] < 0) vertices.reverse();
+  if (nn[1] < 0) {
+    vertices.reverse();
+    vec3.scale(nn, nn, -1);
+  }
 
   vec3.normalize(nn, nn);
 
