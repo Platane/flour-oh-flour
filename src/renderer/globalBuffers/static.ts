@@ -1,13 +1,21 @@
 import { vec3 } from "gl-matrix";
+import { cross } from "../../math/convexPolygon";
 
-export const vertices = new Float32Array(3 * 50 * 1000);
-export const normals = new Float32Array(3 * 50 * 1000);
-export const colors = new Float32Array(3 * 50 * 1000);
+const maxN = 5 * 1000;
+
+export const vertices = new Float32Array(3 * 3 * maxN);
+export const normals = new Float32Array(3 * 3 * maxN);
+export const colors = new Float32Array(3 * 3 * maxN);
 
 // number of face
 export let n = 0;
 
-export const incrementN = () => n++;
+export const incrementN = () => {
+  n++;
+
+  if (process.env.NODE_ENV !== "production" && n >= maxN)
+    throw new Error("buffer too small");
+};
 
 export const pushFace = (
   points: number[][] | vec3[],
@@ -32,6 +40,23 @@ export const pushFace = (
       colors[n * 9 + u] = color[u % 3];
     }
 
-    n++;
+    incrementN();
   }
+};
+
+const nn: vec3 = [] as any;
+export const pushFlatFace = (
+  points: number[][] | vec3[],
+  color: number[] | vec3
+) => {
+  cross(
+    nn,
+    points[0] as any,
+    points[1] as any,
+    points[0] as any,
+    points[2] as any
+  );
+  vec3.normalize(nn, nn);
+
+  pushFace(points, color, nn);
 };

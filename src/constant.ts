@@ -3,6 +3,7 @@ import { vec3 } from "gl-matrix";
 export const zero: vec3 = [0, 0, 0];
 export const up: vec3 = [0, 1, 0];
 export const z: vec3 = [0, 0, 1];
+export const x: vec3 = [1, 0, 0];
 
 export const tmp0: vec3 = [] as any;
 export const tmp1: vec3 = [] as any;

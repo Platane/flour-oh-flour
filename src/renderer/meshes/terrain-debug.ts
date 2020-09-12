@@ -1,4 +1,3 @@
-import { createCanvas } from "../../debugCanvas";
 import {
   isInsidePotato,
   cells,

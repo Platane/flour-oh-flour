@@ -1,4 +1,4 @@
-import { mat4, vec3, vec2, mat3 } from "gl-matrix";
+import { mat4, vec3, mat3 } from "gl-matrix";
 import { canvas } from "../canvas";
 import { clamp } from "../math/utils";
 import { Handler } from "../controls-type";
@@ -29,9 +29,6 @@ export const worldMatrix = new Float32Array(4 * 4);
 // inverse of the 3x3 lookAt matrix
 // used for bill boarding
 export const lookAtMatrix3Inv = new Float32Array(3 * 3);
-
-// unused
-export const worlInverseTransposedMatrix = new Float32Array(4 * 4);
 
 const update = () => {
   const radius = 0.1 + zoom * 0.5;

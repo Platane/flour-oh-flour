@@ -1,10 +1,10 @@
-import { vec3 } from "gl-matrix";
+import { vec3, mat4 } from "gl-matrix";
 import { faceToVertices } from "../utils/faceToVertices";
+import { pushFlatFace as pushFlatFaceStatic } from "../globalBuffers/static";
+import { pushFlatFace as pushFlatFaceDynamic } from "../globalBuffers/dynamic";
+import { date } from "../../logic";
 
-export const createWindmill = () => {
-  const vertices: number[] = [];
-  const colors: number[] = [];
-
+export const createWindmill = (transform: mat4) => {
   // body
   const bodyTopRadius = 1;
   const bodyBottomRadius = 1.25;
@@ -88,11 +88,10 @@ export const createWindmill = () => {
         [ roofRadius * ax, footHeight + bodyHeight, roofRadius * ay],
       ],
     ]) {
-      const vs = faceToVertices(face);
-      vertices.push(...vs);
-
-      for (let i = vs.length / 3; i--; )
-        colors.push(142 / 255, 92 / 255, 31 / 255);
+      pushFlatFaceStatic(
+        face.map((v: any) => vec3.transformMat4([] as any, v, transform)),
+        [142 / 255, 92 / 255, 31 / 255]
+      );
     }
 
     let vy = by - ay;
@@ -158,78 +157,85 @@ export const createWindmill = () => {
         [ roofRadius * plankCapWidth / roofHeight * bx, footHeight + bodyHeight + roofHeight - plankCapWidth             , roofRadius * plankCapWidth / roofHeight * by],
       ],
     ]) {
-      const vs = faceToVertices(face);
-      vertices.push(...vs);
-
-      for (let i = vs.length / 3; i--; )
-        colors.push(197 / 255, 136 / 255, 71 / 255);
+      pushFlatFaceStatic(
+        face.map((v: any) => vec3.transformMat4([] as any, v, transform)),
+        [197 / 255, 136 / 255, 71 / 255]
+      );
     }
   }
 
-  for (let k = 4; k--; )
-    for (const face of [
-      // prettier-ignore
-      [
+  const update = () => {
+    for (let k = 4; k--; )
+      for (const face of [
+        // prettier-ignore
+        [
         [ wingXm + -wingBottomH, wingMarginO + 0    , wingDepth],
         [ wingXm +  wingBottomH, wingMarginO + 0    , wingDepth],
         [ wingXm +  wingTopH   , wingMarginO + wingL, wingDepth],
         [ wingXm + -wingTopH   , wingMarginO + wingL, wingDepth],
       ],
 
-      // prettier-ignore
-      [
+        // prettier-ignore
+        [
         [ wingXm +  wingTopH   , wingMarginO + wingL, -wingDepth],
         [ wingXm +  wingBottomH, wingMarginO + 0    , -wingDepth],
         [ wingXm + -wingBottomH, wingMarginO + 0    , -wingDepth],
         [ wingXm + -wingTopH   , wingMarginO + wingL, -wingDepth],
       ],
 
-      // prettier-ignore
-      [
+        // prettier-ignore
+        [
         [ wingXm + wingTopH   , wingMarginO + wingL, -wingDepth],
         [ wingXm + wingTopH   , wingMarginO + wingL,  wingDepth],
         [ wingXm + wingBottomH, wingMarginO + 0    ,  wingDepth],
         [ wingXm + wingBottomH, wingMarginO + 0    , -wingDepth],
       ],
 
-      // prettier-ignore
-      [
+        // prettier-ignore
+        [
         [ wingXm + -wingTopH   , wingMarginO + wingL,  wingDepth],
         [ wingXm + -wingTopH   , wingMarginO + wingL, -wingDepth],
         [ wingXm + -wingBottomH, wingMarginO + 0    , -wingDepth],
         [ wingXm + -wingBottomH, wingMarginO + 0    ,  wingDepth],
       ],
 
-      // prettier-ignore
-      [
+        // prettier-ignore
+        [
         [ wingXm + -wingTopH, wingMarginO + wingL,  wingDepth],
         [ wingXm +  wingTopH, wingMarginO + wingL,  wingDepth],
         [ wingXm +  wingTopH, wingMarginO + wingL, -wingDepth],
         [ wingXm + -wingTopH, wingMarginO + wingL, -wingDepth],
       ],
 
-      // prettier-ignore
-      [
+        // prettier-ignore
+        [
         [ wingXm +  wingBottomH, wingMarginO, -wingDepth],
         [ wingXm +  wingBottomH, wingMarginO,  wingDepth],
         [ wingXm + -wingBottomH, wingMarginO,  wingDepth],
         [ wingXm + -wingBottomH, wingMarginO, -wingDepth],
       ],
-    ]) {
-      const vs = faceToVertices(
-        face.map((v: any) => {
-          vec3.add(v, v, wingO);
-          vec3.rotateY(v, v, wingO, -0.16);
-          vec3.rotateZ(v, v, wingO, 9 + (k * Math.PI) / 2);
+      ]) {
+        pushFlatFaceDynamic(
+          face.map((v: any) => {
+            const p: vec3 = [] as any;
 
-          return v;
-        })
-      );
-      vertices.push(...vs);
+            vec3.add(v, v, wingO);
+            vec3.rotateY(v, v, wingO, -0.16);
+            vec3.rotateZ(
+              v,
+              v,
+              wingO,
+              9 + (k * Math.PI) / 2 + date * 0.2 * Math.PI * 2
+            );
 
-      for (let i = vs.length / 3; i--; )
-        colors.push(212 / 255, 198 / 255, 181 / 255);
-    }
+            vec3.transformMat4(p, v, transform);
 
-  return { vertices, colors };
+            return p;
+          }),
+          [212 / 255, 198 / 255, 181 / 255]
+        );
+      }
+  };
+
+  return update;
 };

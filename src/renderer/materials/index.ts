@@ -3,7 +3,7 @@ import codeFrag from "./shader.frag";
 import codeVert from "./shader.vert";
 import { gl } from "../../canvas";
 import { getAttributeLocation, getUniformLocation } from "../utils/location";
-import { worlInverseTransposedMatrix, worldMatrix } from "../camera";
+import { worldMatrix } from "../camera";
 
 const program = createProgram(gl, codeVert, codeFrag);
 
@@ -13,11 +13,6 @@ const positionLocation = getAttributeLocation(gl, program, "aVertexPosition");
 
 const timeLocation = getUniformLocation(gl, program, "uTime");
 const worldMatrixLocation = getUniformLocation(gl, program, "uWorldMatrix");
-const worldInverseTransposedMatrixLocation = getUniformLocation(
-  gl,
-  program,
-  "uWorldInverseTransposedMatrix"
-);
 
 const s = Date.now();
 
@@ -36,7 +31,7 @@ export const createMaterial = (usage: Parameters<typeof gl.bufferData>[2]) => {
     colors: Float32Array,
     positions: Float32Array,
     normals: Float32Array,
-    newN = positions.length / 3
+    newN: number
   ) => {
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, colors, usage);
@@ -59,11 +54,7 @@ export const createMaterial = (usage: Parameters<typeof gl.bufferData>[2]) => {
     gl.useProgram(program);
 
     gl.uniformMatrix4fv(worldMatrixLocation, false, worldMatrix);
-    gl.uniformMatrix4fv(
-      worldInverseTransposedMatrixLocation,
-      false,
-      worlInverseTransposedMatrix
-    );
+
     gl.uniform1f(timeLocation, (Date.now() - s) / 1000);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gIndexBuffer);

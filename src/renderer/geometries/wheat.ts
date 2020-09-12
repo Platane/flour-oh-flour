@@ -4,9 +4,8 @@ import { z, tmp0, tmp1 } from "../../constant";
 import { maxGrowth } from "../../logic";
 import { wheatColorEnd, wheatColorStart } from "../colors";
 import { pushFace } from "../globalBuffers/dynamic";
-import { clamp } from "../../math/utils";
 
-const SIZE = 0.03;
+const SIZE = 0.009;
 
 // const n: vec3 = [] as any;
 const n = tmp0;
@@ -64,7 +63,7 @@ export const createWheat = (origin: vec3, v: vec3, growth: number) => {
     s
   );
 
-  const branchSize = s * SIZE * 1.2;
+  const branchSize = s * SIZE * 1.5;
   const branchBase = s * SIZE * 0.1;
   const grainScale = s * SIZE * 0.3;
 

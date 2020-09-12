@@ -12,15 +12,17 @@ import {
   getPolygonCenter,
   isInsidePolygon,
   enlargePolygon,
+  cross,
 } from "../../math/convexPolygon";
 import { getSegmentIntersection } from "../../math/getSegmentIntersection";
 import { hillColor, dirtColor } from "../colors";
+import { createWindmill } from "../geometries/windmill";
 
 //
 // constant
 //
-const cellN = 8;
-const cellCloudN = 80;
+const cellN = 12;
+const cellCloudN = 60;
 const triangleCloudN = 1200;
 const triangleCloudDistance = 0.00005;
 
@@ -79,7 +81,7 @@ while (potatoPoints.length < cellCloudN) {
 //
 // generate the height function
 //
-export const potatoCenter: vec2 = getPolygonCenter(
+const potatoCenter: vec2 = getPolygonCenter(
   [] as any,
   potatoPoints as any
 ) as any;
@@ -87,7 +89,7 @@ export const potatoCenter: vec2 = getPolygonCenter(
 const insideUnitSquare = (x: number, y: number) =>
   x >= 0 && x < 1 && y >= 0 && y < 1;
 
-const distanceToHull = (x: number, y: number) => {
+const distanceToPotato = (x: number, y: number) => {
   const v = vec2.set([] as any, x, y);
   vec2.sub(v, v, potatoCenter);
   vec2.normalize(v, v);
@@ -123,9 +125,9 @@ const getAltitude = (x: number, y: number) => {
   h += altitudePerlin1(x + 1.7, y + 1.6) * 0.6;
   h += altitudePerlin2(x + 1.57, y + 1.2) * 0.8;
 
-  const d = distanceToHull(x, y);
+  const d = distanceToPotato(x, y);
 
-  return (0.7 * d + h * d) * 0.2;
+  return (0.7 * d + h * d) * 0.3;
 };
 
 //
@@ -151,7 +153,8 @@ while (cellCandidates.faces.length && cells.length < cellN) {
   // ignore
   if (
     vertices.some(
-      (v) => !insideUnitSquare(v[0], v[1]) || distanceToHull(v[0], v[1]) < 0.14
+      (v) =>
+        !insideUnitSquare(v[0], v[1]) || distanceToPotato(v[0], v[1]) < 0.14
     )
   )
     continue;
@@ -235,22 +238,18 @@ while (cellCandidates.faces.length && cells.length < cellN) {
 
   // prepare to move the vertices inside the plan
   for (let i = 0; i < indexes.length; i++) {
-    if (anchors.includes(i)) {
-      dzs[i] = 0;
-    } else {
-      const d = vec3.dot(
-        n,
-        vec3.sub(
-          tmp1,
-          cellCandidatesVertices[indexes[i]],
-          cellCandidatesVertices[anchors[0]]
-        )
-      );
+    const d = vec3.dot(
+      n,
+      vec3.sub(
+        tmp1,
+        cellCandidatesVertices[indexes[i]],
+        cellCandidatesVertices[anchors[0]]
+      )
+    );
 
-      const dz = d / vec3.dot(n, z);
+    const dz = d / vec3.dot(n, z);
 
-      dzs[i] = dz;
-    }
+    dzs[i] = dz;
   }
 
   // ignore if we need to move the point too much
@@ -394,7 +393,6 @@ for (let i = fillIndexes.length; i--; ) {
 //
 // remove ugly outer shell
 //
-// TODO
 for (let i = fillIndexes.length; i--; ) {
   const c = getPolygonCenter(
     tmp1,
@@ -405,21 +403,64 @@ for (let i = fillIndexes.length; i--; ) {
 }
 
 //
+// add cliff
+//
+for (let i = fillIndexes.length; i--; )
+  for (let u = 3; u--; ) {
+    const a = fillIndexes[i][u];
+    const b = fillIndexes[i][(u + 1) % 3];
+
+    let l = 0;
+
+    for (let j = fillIndexes.length; j--; )
+      for (let v = 3; v--; ) {
+        const c = fillIndexes[j][v];
+        const d = fillIndexes[j][(v + 1) % 3];
+
+        if ((a === c && b === d) || (a === d && b === c)) l++;
+      }
+
+    if (l === 1) {
+      let k = fillPoints.length;
+
+      fillPoints.push(
+        ...[fillPoints[a], fillPoints[b]]
+          .map((x) => {
+            const p = [
+              x[0] - potatoCenter[0],
+              x[1] - potatoCenter[1],
+              0,
+            ] as vec3;
+
+            vec3.normalize(p, p);
+            p[2] = -5;
+
+            vec3.normalize(p, p);
+            vec3.scale(p, p, 0.1);
+
+            vec3.add(p, p, x);
+
+            return p;
+          })
+          .reverse()
+      );
+
+      fillIndexes.push([a, b, k], [a, k + 1, k]);
+    }
+  }
+
+//
 // form the triangles
 //
-
-for (const p of fillPoints)
-  if (p.length === 2) (p as any).push(getAltitude(p[0], p[1]));
 
 // currently only the cells are activatable,
 // the active face points to the index of the face
 export const activeFaces: number[] = [];
 
-const fieldsUpdates: (() => void)[] = [];
+const updates: (() => void)[] = [];
 
 // const transform = mat4.create();
 const transform = mat4.create();
-
 mat4.multiply(transform, transform, mat4.fromScaling([] as any, [2, -1, 2]));
 mat4.multiply(
   transform,
@@ -428,15 +469,15 @@ mat4.multiply(
 );
 mat4.multiply(transform, transform, mat4.fromXRotation([] as any, Math.PI / 2));
 
-// mat4.fromScaling([] as any, 2);
-
 for (const cell of cells) {
   const vertices = cell.map((v) => vec3.transformMat4([] as any, v, transform));
 
-  const nn = vec3.cross(
+  const nn = cross(
     [] as any,
-    vec3.sub(tmp1, vertices[1], vertices[0]),
-    vec3.sub(tmp2, vertices[2], vertices[0])
+    vertices[1],
+    vertices[0],
+    vertices[2],
+    vertices[0]
   );
   if (nn[1] < 0) {
     vertices.reverse();
@@ -446,7 +487,7 @@ for (const cell of cells) {
   vec3.normalize(nn, nn);
 
   let a = n;
-  pushFace(vertices, [Math.random(), Math.random(), Math.random()], nn);
+  pushFace(vertices, dirtColor, nn);
 
   const i = logicCells.length;
   logicCells.push({
@@ -455,7 +496,7 @@ for (const cell of cells) {
     type: "growing",
   } as any);
 
-  fieldsUpdates.push(createField(vertices, up, i));
+  updates.push(createField(vertices, i));
 
   for (let j = a; j < n; j++) activeFaces[j] = i;
 }
@@ -466,10 +507,12 @@ for (const indexes of fillIndexes) {
   );
 
   // ensure that the faces are pointed to the up axis
-  const nn = vec3.cross(
+  const nn = cross(
     [] as any,
-    vec3.sub(tmp1, vertices[1], vertices[0]),
-    vec3.sub(tmp2, vertices[2], vertices[0])
+    vertices[1],
+    vertices[0],
+    vertices[2],
+    vertices[0]
   );
   if (nn[1] < 0) {
     vertices.reverse();
@@ -481,42 +524,57 @@ for (const indexes of fillIndexes) {
   pushFace(vertices, hillColor, nn);
 }
 
-// // add windmills
-// for (let u = 5; u--; ) {
-//   let x = 1;
-//   let y = 1;
-//   while (x * x + y * y > 0.9) {
-//     x = Math.random() * 2 - 1;
-//     y = Math.random() * 2 - 1;
-//   }
+//
+// add windmills
+//
+export const windmillPositions: vec3[] = [];
+let kk = 0;
+while (kk < 100 && windmillPositions.length < 6) {
+  const x = Math.random();
+  const y = Math.random();
 
-//   const { vertices, colors } = createWindmill();
+  const p: vec3 = [x, y, 0];
 
-//   const s = 0.035;
-//   const o = [x, h(x, y), y];
-//   const a = Math.random() * Math.PI * 2;
+  kk++;
 
-//   for (let i = 0; i < vertices.length; i += 3) {
-//     tmp0[0] = vertices[i + 0];
-//     tmp0[1] = vertices[i + 1];
-//     tmp0[2] = vertices[i + 2];
+  if (
+    isInsidePotato(x, y) &&
+    distanceToPotato(x, y) > 0.14 &&
+    !flatEnlargedCells.some((cell) => isInsidePolygon(cell, z, [x, y, 0])) &&
+    windmillPositions.every((p0) => vec2.distance(p as any, p0 as any) > 0.2)
+  ) {
+    const z = getAltitude(x, y);
 
-//     vec3.rotateY(tmp0, tmp0, zero, a);
+    const s = 0.018;
 
-//     vertices[i + 0] = tmp0[0] * s + o[0];
-//     vertices[i + 1] = tmp0[1] * s + o[1];
-//     vertices[i + 2] = tmp0[2] * s + o[2];
-//   }
+    let d = 0;
+    for (let k = 5; k--; ) {
+      const sx = x + 0.5 * s * Math.sin((k / 5) * Math.PI * 2);
+      const sy = y + 0.5 * s * Math.cos((k / 5) * Math.PI * 2);
 
-//   staticVertices.push(...vertices);
-//   staticColors.push(...colors);
-// }
+      d = Math.max(d, getAltitude(sx, sy) - z);
+    }
 
-// const fieldsUpdates = cellFaces.map((cell, i) =>
-//   createField(cell as any, direction, i)
-// );
+    p[0] = (p[0] - potatoCenter[0]) * 2;
+    p[2] = (p[1] - potatoCenter[1]) * 2;
+    p[1] = z + d;
+
+    const tr = mat4.create();
+    mat4.multiply(tr, tr, mat4.fromTranslation([] as any, p as any));
+    mat4.multiply(tr, tr, mat4.fromScaling([] as any, [s, s, s]));
+    mat4.multiply(
+      tr,
+      tr,
+      mat4.fromYRotation([] as any, Math.random() * Math.PI * 2)
+    );
+
+    windmillPositions.push(p as any);
+    updates.push(createWindmill(tr));
+
+    k = 0;
+  }
+}
 
 export const update = () => {
-  // add dynamic fields
-  // for (const update of fieldsUpdates) update();
+  for (const update of updates) update();
 };

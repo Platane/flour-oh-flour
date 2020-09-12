@@ -1,42 +1,53 @@
 import { vec3 } from "gl-matrix";
 import { createWheat } from "./wheat";
-import { tmp0, tmp1, tmp2, tmp3, tmp4, zero } from "../../constant";
+import {
+  tmp0,
+  tmp1,
+  tmp2,
+  tmp3,
+  tmp4,
+  zero,
+  up,
+  z,
+  epsilon,
+  x,
+} from "../../constant";
 import { cells, maxTic, date, touches } from "../../logic";
 import { clamp } from "../../math/utils";
 import { hintColor, wheatColorEnd } from "../colors";
 import { getWindDirection } from "./wind";
 import { particles } from "../meshes/particles";
 import { pushFace } from "../globalBuffers/dynamic";
-import { isInsidePolygon } from "../../math/convexPolygon";
+import {
+  isInsidePolygon,
+  getPolygonCenter,
+  getPolygonBoundingSphereRadius,
+} from "../../math/convexPolygon";
 
-const wheatSpace = 0.07;
-const lineSpace = 0.06;
+const wheatSpace = 0.013;
+const lineSpace = wheatSpace;
+// const wheatSpace = 0.01;
+// const lineSpace = 0.008;
 
-export const createField = (cell: vec3[], direction: vec3, i: number) => {
+export const createField = (cell: vec3[], i: number) => {
   // compute the center
-  const c: vec3 = [0, 0, 0];
-
-  for (const p of cell) {
-    c[0] += p[0] / cell.length;
-    c[1] += p[1] / cell.length;
-    c[2] += p[2] / cell.length;
-  }
+  const c: vec3 = getPolygonCenter([] as any, cell);
 
   // compute bounding sphere
-  let r = Infinity;
-  for (const p of cell) {
-    const l = vec3.distance(p, c);
-    if (l < r) r = l;
-  }
+  const r = getPolygonBoundingSphereRadius(cell);
 
   // compute axes
-  const u = vec3.sub([] as any, cell[1], cell[0]);
-  const v = vec3.sub([] as any, cell[2], cell[0]);
-  const n = vec3.cross([] as any, u, v);
+  const u = [] as any;
+  const v = [] as any;
+  const n = [] as any;
+
+  vec3.sub(v, cell[1], cell[0]);
+  vec3.sub(u, cell[2], cell[0]);
+
+  vec3.cross(n, u, v);
 
   vec3.normalize(n, n);
-
-  vec3.cross(u, n, direction);
+  vec3.cross(u, n, v);
   vec3.normalize(u, u);
 
   vec3.cross(v, u, n);
@@ -45,8 +56,8 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
 
   const wheatOrigins: vec3[] = [];
 
-  const um = Math.ceil(r / lineSpace) * lineSpace;
-  const im = Math.ceil(r / wheatSpace) * wheatSpace;
+  const um = 1 + Math.ceil(r / lineSpace) * lineSpace;
+  const im = 1 + Math.ceil(r / wheatSpace) * wheatSpace;
 
   for (let ul = -um; ul <= um; ul += lineSpace)
     for (let il = -im; il <= im; il += wheatSpace) {
@@ -106,11 +117,11 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
 
           pushFace([tmp1, tmp2, tmp4, tmp3], hintColor, n);
         }
-      } else if (false) {
+      } else {
         //
         // spawn particles when the field is fully grown
 
-        if ((0 | (date * 1000)) % 3 === 0) {
+        if ((0 | (date * 1000)) % 6 === 0) {
           // debugger;
 
           const positionA: vec3 = [999999, 999999, 999999];
@@ -131,12 +142,12 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
             );
           }
 
-          const s = 0.5;
+          const s = 0.2;
 
           const l = (1 + Math.random() * 2) * 0.5 * s;
 
           const positionB = vec3.copy([] as any, positionA);
-          vec3.scaleAndAdd(positionB, positionB, n, l);
+          vec3.scaleAndAdd(positionB, positionB, up, l);
 
           const a = Math.random() * 3;
 
