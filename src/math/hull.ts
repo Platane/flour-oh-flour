@@ -52,3 +52,33 @@ export const isInsideHull = (hull: vec3[], n: vec3, p: vec3) => {
 
   return true;
 };
+
+const getTriangleArea = (A: vec3, B: vec3, C: vec3) => {
+  const ABx = B[0] - A[0];
+  const ABy = B[1] - A[1];
+  const ABz = B[2] - A[2];
+
+  const ACx = C[0] - A[0];
+  const ACy = C[1] - A[1];
+  const ACz = C[2] - A[2];
+
+  const nx = ABy * ACz - ABz * ACy;
+  const ny = ABz * ACx - ABx * ACz;
+  const nz = ABx * ACy - ABy * ACx;
+
+  return Math.hypot(nx, ny, nz) / 2;
+};
+
+export const getHullArea = (points: vec3[]) => {
+  let a = 0;
+  for (let i = 0; i < points.length - 1; i++)
+    a += getTriangleArea(points[0], points[i], points[i + 1]);
+
+  return a;
+};
+
+export const getHullBoundingBoxDimension = (points: vec3[]) => [
+  Math.max(...points.map((v) => v[0])) - Math.min(...points.map((v) => v[0])),
+  Math.max(...points.map((v) => v[1])) - Math.min(...points.map((v) => v[1])),
+  Math.max(...points.map((v) => v[2])) - Math.min(...points.map((v) => v[2])),
+];
