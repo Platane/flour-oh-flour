@@ -6,7 +6,7 @@ export const getSegmentIntersection = (
   A2: vec2,
   B1: vec2,
   B2: vec2
-): number | null => {
+): [number, number, number, number] | null => {
   const A0x = A1[0];
   const A0y = A1[1];
 
@@ -37,7 +37,19 @@ export const getSegmentIntersection = (
   else if (Math.abs(vBy) < epsilon) k1 = (B0y - A0y) / vAy;
   else k1 = ((A0x - B0x) / vBx - (A0y - B0y) / vBy) / (vAy / vBy - vAx / vBx);
 
-  if (k1 >= 0 && k1 <= 1) return k1;
+  if (k1 < 0 || k1 > 1) return null;
 
-  return null;
+  const px = A0x + k1 * vAx;
+  const py = A0y + k1 * vAy;
+
+  let k2;
+  if (Math.abs(vBx) > epsilon) {
+    k2 = (px - B0x) / vBx;
+  } else {
+    k2 = (py - B0y) / vBy;
+  }
+
+  if (k2 < 0 || k2 > 1) return null;
+
+  return [px, py, k1 as number, k2 as number];
 };
