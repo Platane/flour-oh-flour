@@ -44,7 +44,9 @@ export const isInsidePolygon = (points: vec3[], n: vec3, p: vec3) => {
       n[2] * (ux * vy - uy * vx);
 
     if (Math.abs(dot) > epsilon) {
-      if (x * dot < 0) return false;
+      if (x * dot < 0) {
+        return false;
+      }
 
       x = dot > 0 ? 1 : -1;
     }
@@ -101,3 +103,15 @@ export const getPolygonBoundingBoxDimension = (points: vec3[]) => [
   Math.max(...points.map((v) => v[1])) - Math.min(...points.map((v) => v[1])),
   Math.max(...points.map((v) => v[2])) - Math.min(...points.map((v) => v[2])),
 ];
+
+export const enlargePolygon = (points: vec3[], m: number) => {
+  const C = getPolygonCenter([] as any, points);
+  return points.map((P) => {
+    const v = vec3.subtract([] as any, P, C);
+
+    const l = vec3.length(v);
+
+    vec3.scale(v, v, (l + m) / l);
+    return vec3.add(v, v, C);
+  });
+};

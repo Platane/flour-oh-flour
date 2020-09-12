@@ -11,6 +11,7 @@ import {
   getPolygonBoundingSphereRadius,
   getPolygonCenter,
   isInsidePolygon,
+  enlargePolygon,
 } from "../../math/convexPolygon";
 import { getSegmentIntersection } from "../../math/getSegmentIntersection";
 import { hillColor, dirtColor } from "../colors";
@@ -18,8 +19,10 @@ import { hillColor, dirtColor } from "../colors";
 //
 // constant
 //
-const cellCloudN = 60;
-const triangleCloudN = 800;
+const cellN = 8;
+const cellCloudN = 80;
+const triangleCloudN = 1200;
+const triangleCloudDistance = 0.00005;
 
 //
 // generate an interesting potato shaped hull
@@ -64,17 +67,22 @@ while (potatoPoints.length < cellCloudN) {
   const x = Math.random();
   const y = Math.random();
 
-  if (isInsidePotato(x, y)) potatoPoints.push([x, y]);
+  const p: vec2 = [x, y];
+
+  if (
+    isInsidePotato(x, y) &&
+    potatoPoints.every((p0) => vec2.squaredDistance(p, p0) > 0.0005)
+  )
+    potatoPoints.push(p);
 }
 
 //
 // generate the height function
 //
-export const potatoCenter: vec2 = [0, 0];
-for (let i = potatoPoints.length; i--; ) {
-  potatoCenter[0] += potatoPoints[i][0] / potatoPoints.length;
-  potatoCenter[1] += potatoPoints[i][1] / potatoPoints.length;
-}
+export const potatoCenter: vec2 = getPolygonCenter(
+  [] as any,
+  potatoPoints as any
+) as any;
 
 const insideUnitSquare = (x: number, y: number) =>
   x >= 0 && x < 1 && y >= 0 && y < 1;
@@ -108,6 +116,8 @@ const altitudePerlin1 = generatePerlinNoise(3, 3, 0.32);
 const altitudePerlin2 = generatePerlinNoise(3, 3, 0.73);
 
 const getAltitude = (x: number, y: number) => {
+  // return 0;
+
   let h = -0.3;
   h += altitudePerlin0(x + 1.2, y + 1.16) * 0.5;
   h += altitudePerlin1(x + 1.7, y + 1.6) * 0.6;
@@ -115,7 +125,7 @@ const getAltitude = (x: number, y: number) => {
 
   const d = distanceToHull(x, y);
 
-  return (0.7 * d + h * d) * 0.4;
+  return (0.7 * d + h * d) * 0.2;
 };
 
 //
@@ -131,9 +141,7 @@ const frozenVertices: boolean[] = [];
 
 export const cells: vec3[][] = [];
 
-const nCell = 18;
-
-while (cellCandidates.faces.length && cells.length < nCell) {
+while (cellCandidates.faces.length && cells.length < cellN) {
   const k = Math.floor(Math.random() * cellCandidates.faces.length);
   const [indexes] = cellCandidates.faces.splice(k, 1);
 
@@ -148,6 +156,18 @@ while (cellCandidates.faces.length && cells.length < nCell) {
   )
     continue;
 
+  // if the shape have edge too small
+  // ignore
+  // because it's causing issue with the inside detection
+  if (
+    vertices.some((_, i, arr) => {
+      return (
+        vec2.distance(arr[i] as any, arr[(i + 1) % arr.length] as any) < 0.005
+      );
+    })
+  )
+    continue;
+
   // if the shape is not pretty enough
   // ignore
 
@@ -157,7 +177,7 @@ while (cellCandidates.faces.length && cells.length < nCell) {
   const hullArea = getPolygonArea(vertices);
   const hullCompactness = hullArea / boundingSphereArea;
 
-  if (hullArea < 0.01 || hullCompactness < 0.4) continue;
+  if (hullArea < 0.006 || hullCompactness < 0.3) continue;
 
   // some point are already frozen,
   // meaning we can no longer move them
@@ -211,29 +231,41 @@ while (cellCandidates.faces.length && cells.length < nCell) {
   );
   vec3.normalize(n, n);
 
-  // move the vertices inside the plan
-  for (const i of indexes) {
-    if (!anchors.includes(i)) {
+  const dzs: number[] = [];
+
+  // prepare to move the vertices inside the plan
+  for (let i = 0; i < indexes.length; i++) {
+    if (anchors.includes(i)) {
+      dzs[i] = 0;
+    } else {
       const d = vec3.dot(
         n,
         vec3.sub(
           tmp1,
-          cellCandidatesVertices[i],
+          cellCandidatesVertices[indexes[i]],
           cellCandidatesVertices[anchors[0]]
         )
       );
 
-      vec3.scaleAndAdd(
-        cellCandidatesVertices[i],
-        cellCandidatesVertices[i],
-        n,
-        -d
-      );
+      const dz = d / vec3.dot(n, z);
+
+      dzs[i] = dz;
     }
   }
 
-  // and flag then as frozen
-  for (const i of indexes) frozenVertices[i] = true;
+  // ignore if we need to move the point too much
+  if (dzs.some((dz) => Math.abs(dz) > 0.05)) continue;
+
+  for (let i = 0; i < indexes.length; i++) {
+    vec3.scaleAndAdd(
+      cellCandidatesVertices[indexes[i]],
+      cellCandidatesVertices[indexes[i]],
+      z,
+      -dzs[i]
+    );
+
+    frozenVertices[indexes[i]] = true;
+  }
 
   // add to the cell list
   cells.push(vertices);
@@ -249,6 +281,10 @@ export const fillPoints: vec3[] = cells
 
 fillPoints.push(...cells.map((cell) => getPolygonCenter([] as any, cell)));
 
+const flatEnlargedCells = cells.map((cell) =>
+  enlargePolygon(cell, 0.04).map((v) => [v[0], v[1], 0] as vec3)
+);
+
 let k = 0;
 while (k < 100 && fillPoints.length < triangleCloudN) {
   const x = Math.random();
@@ -258,8 +294,10 @@ while (k < 100 && fillPoints.length < triangleCloudN) {
 
   if (
     isInsidePotato(x, y) &&
-    !cells.some((cell) => isInsidePolygon(cell, z, [x, y, 0])) &&
-    fillPoints.every((p0) => vec2.squaredDistance(p, p0 as any) > 0.0005)
+    !flatEnlargedCells.some((cell) => isInsidePolygon(cell, z, [x, y, 0])) &&
+    fillPoints.every(
+      (p0) => vec2.squaredDistance(p, p0 as any) > triangleCloudDistance
+    )
   ) {
     k = 0;
     p.push(getAltitude(x, y));
@@ -357,7 +395,14 @@ for (let i = fillIndexes.length; i--; ) {
 // remove ugly outer shell
 //
 // TODO
-for (let i = fillIndexes.length; i--; ) {}
+for (let i = fillIndexes.length; i--; ) {
+  const c = getPolygonCenter(
+    tmp1,
+    fillIndexes[i].map((k) => fillPoints[k])
+  );
+
+  if (!isInsidePotato(c[0], c[1])) fillIndexes.splice(i, 1);
+}
 
 //
 // form the triangles
@@ -379,7 +424,7 @@ mat4.multiply(transform, transform, mat4.fromScaling([] as any, [2, -1, 2]));
 mat4.multiply(
   transform,
   transform,
-  mat4.fromTranslation([] as any, [-0.5, 0, -0.5])
+  mat4.fromTranslation([] as any, [-potatoCenter[0], 0, -potatoCenter[1]])
 );
 mat4.multiply(transform, transform, mat4.fromXRotation([] as any, Math.PI / 2));
 

@@ -157,7 +157,7 @@ export const createField = (cell: vec3[], direction: vec3, i: number) => {
 
     //
     // explode particles after reap
-    if (lcell.type === "growing" && false) {
+    if (lcell.type === "growing") {
       const kMax = (0.27 - (date - lcell.growingSinceDate)) * 80;
 
       for (let k = 0; k < kMax; k++) {

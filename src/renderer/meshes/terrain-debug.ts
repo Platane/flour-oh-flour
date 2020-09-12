@@ -9,7 +9,7 @@ import {
 } from "./terrain";
 import { vec2 } from "gl-matrix";
 
-const l = 600;
+const l = 900;
 const potatoCanvas = document.createElement("canvas");
 
 const debugContainer = document.createElement("div");
@@ -21,7 +21,10 @@ debugContainer.style.zIndex = "3";
 debugContainer.style.overflow = "scroll";
 debugContainer.style.width = "100%";
 debugContainer.style.display = "flex";
-debugContainer.style.flexDirection = "row";
+debugContainer.style.flexDirection = "column";
+debugContainer.style.justifyContent = "start";
+debugContainer.style.alignItems = "start";
+debugContainer.style.flexDirection = "column";
 debugContainer.addEventListener("click", () => {
   debugContainer.style.display = "none";
 });
