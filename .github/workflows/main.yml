@@ -56,7 +56,7 @@ jobs:
 
       - name: copy screenshots
         run: |
-          cp -r doc/screenshots dist
+          cp -r doc/screenshots/* dist/images
 
       - name: deploy to gh-pages
         uses: crazy-max/ghaction-github-pages@v2.1.1
