@@ -49,9 +49,15 @@ jobs:
           name: build
           path: dist
 
+      - uses: actions/checkout@v1
+
       - name: generate badge
         run: |
           node -e "const s=require('fs').statSync('dist/bundle.zip').size;console.log(JSON.stringify({label:'size',message:(s/1024).toFixed(2)+'K',color:s<13312?'success':'important'}))" > dist/shieldio_size.json
+
+      - name: copy screenshots
+        run: |
+          cp -r doc/screenshots dist
 
       - name: deploy to gh-pages
         uses: crazy-max/ghaction-github-pages@v2.1.1
