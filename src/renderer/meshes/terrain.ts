@@ -507,7 +507,7 @@ for (const cell of cells) {
 
   const i = logicCells.length;
   logicCells.push({
-    growth: maxGrowth * 0.9,
+    growth: i === 0 ? maxGrowth * 0.9 : maxGrowth * Math.random() * 0.5,
     area: getPolygonArea(vertices),
     type: "growing",
   } as any);
@@ -699,7 +699,7 @@ updates.push(() => {
       c,
       angle: Math.random() * Math.PI * 2,
       date0: date,
-      duration: (vec3.distance(a, c) + vec3.distance(c, b)) / 3,
+      duration: (vec3.distance(a, c) + vec3.distance(c, b)) * 0.4,
     });
   }
 
