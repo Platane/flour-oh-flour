@@ -1,15 +1,14 @@
 import { vec3 } from "gl-matrix";
-import { date } from "../../logic";
-import { clamp } from "../../math/utils";
+import { date, touches } from "../../logic";
 import { hoveredPosition, hoveredDate } from "../../hover";
 import { epsilon } from "../../constant";
 
 const scale = 1;
 
 const u: vec3 = [] as any;
-const f: vec3 = [] as any;
 
-let a = 0;
+const hand: vec3 = [0, 0, 0] as any;
+
 let lastDate = 0;
 let vD = 0;
 let d = 0;
@@ -34,9 +33,18 @@ export const getWindDirection = (out: vec3, o: vec3) => {
   vec3.normalize(out, out);
 
   if (lastDate !== date) {
+    let dTarget = 0;
+
+    if (touches.length && date - touches[touches.length - 1].date < 0.15) {
+      dTarget = 3.6;
+      vec3.copy(hand, touches[touches.length - 1].p);
+    } else if (hoveredPosition && date - hoveredDate < 0.15) {
+      dTarget = 1;
+      vec3.copy(hand, hoveredPosition);
+    }
+
     const tension = 160;
     const friction = 12;
-    const dTarget = date - hoveredDate < 0.15 ? 1 : 0;
     const a = tension * (dTarget - d) - friction * vD;
     vD += a * (date - lastDate);
     d += vD * (date - lastDate);
@@ -46,17 +54,18 @@ export const getWindDirection = (out: vec3, o: vec3) => {
 
   // clamp(1 - (date - hoveredDate) / 0.16, 0, 1) ** 4;
 
-  if (hoveredPosition && Math.abs(d) > epsilon) {
-    vec3.sub(u, o, hoveredPosition);
+  if (Math.abs(d) > epsilon) {
+    vec3.sub(u, o, hand);
     const l = vec3.length(u);
 
-    const ll =
-      Math.max(
-        l + Math.sin(o[2] * 783 * scale + o[0] * 132 * scale + date) * 0.05,
-        0.027 * scale
-      ) * 6;
+    const rand =
+      Math.sin(o[2] * 783 * scale + o[0] * 132 * scale + date) * 0.003;
 
-    vec3.scaleAndAdd(out, out, u, clamp(d / (l * ll ** 6), -3, 5));
+    const ll = Math.max(l + rand, 0.001);
+
+    const f = (d / (0.0001 + l * ll)) * 0.016;
+
+    vec3.scaleAndAdd(out, out, u, f);
 
     vec3.normalize(out, out);
   }

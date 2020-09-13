@@ -17,7 +17,7 @@ export const onHover: Handler = ([{ pageX, pageY }]) => {
 
   const u = raycast(x, y, staticVertices as any, staticN);
 
-  if (u && activeFaces[u.i] !== undefined) {
+  if (u) {
     hoveredPosition = u.p;
     hoveredDate = date;
   } else {

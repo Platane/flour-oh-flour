@@ -39,7 +39,7 @@ import { staticMaterial } from "../render";
 //
 // constant
 //
-const cellN = 12;
+const cellN = 8;
 const cellCloudN = 60;
 const triangleCloudN = 800;
 const triangleCloudDistance = 0.00005;

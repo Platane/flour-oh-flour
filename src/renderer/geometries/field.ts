@@ -1,17 +1,6 @@
 import { vec3 } from "gl-matrix";
 import { createWheat } from "./wheat";
-import {
-  tmp0,
-  tmp1,
-  tmp2,
-  tmp3,
-  tmp4,
-  zero,
-  up,
-  z,
-  epsilon,
-  x,
-} from "../../constant";
+import { tmp0, tmp1, tmp2, tmp3, tmp4, zero, up } from "../../constant";
 import { cells, maxTic, date, touches } from "../../logic";
 import { clamp } from "../../math/utils";
 import { hintColor, wheatColorEnd } from "../colors";
@@ -24,7 +13,7 @@ import {
   getPolygonBoundingSphereRadius,
 } from "../../math/convexPolygon";
 
-const wheatSpace = 0.023;
+const wheatSpace = 0.022;
 const lineSpace = wheatSpace;
 // const wheatSpace = 0.01;
 // const lineSpace = 0.008;

@@ -16,8 +16,8 @@ const far = 20;
 mat4.perspective(perspectiveMatrix, fovX, aspect, near, far);
 
 // camera primitive
-let phi = 1;
-let theta = 0;
+let phi = 1.2;
+let theta = 1;
 let zoom = Math.floor((maxZoom + minZoom) / 2);
 const rotationSpeed = 3;
 export const lookAtPoint: vec3 = [0, 0, 0];

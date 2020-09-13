@@ -124,7 +124,7 @@ export const stepWorld = () => {
 
   while (touches[0] && touches[0].date + 500 < date) touches.shift();
 
-  if (process.env.NODE_ENV !== "production") {
+  if (false && process.env.NODE_ENV !== "production") {
     if (!pre) {
       pre = document.createElement("pre");
       pre.style.backgroundColor = "#ddd8";
