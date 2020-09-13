@@ -14,6 +14,7 @@ import {
 } from "./globalBuffers/static";
 import { update as updateParticles } from "./meshes/particles";
 import { update as updateTerrain } from "./meshes/terrain";
+import { update as updateCursor } from "./meshes/cursor";
 import { createMaterial } from "./materials";
 
 const staticMaterial = createMaterial(gl.STATIC_DRAW);
@@ -46,6 +47,7 @@ export const render = () => {
   // update
   updateParticles();
   updateTerrain();
+  updateCursor();
 
   dynamicMaterial.updateGeometry(
     dynamicColors,

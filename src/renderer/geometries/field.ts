@@ -24,7 +24,7 @@ import {
   getPolygonBoundingSphereRadius,
 } from "../../math/convexPolygon";
 
-const wheatSpace = 0.013;
+const wheatSpace = 0.023;
 const lineSpace = wheatSpace;
 // const wheatSpace = 0.01;
 // const lineSpace = 0.008;
@@ -44,7 +44,7 @@ export const createField = (cell: vec3[], i: number) => {
   vec3.sub(v, cell[1], cell[0]);
   vec3.sub(u, cell[2], cell[0]);
 
-  vec3.cross(n, u, v);
+  vec3.cross(n, v, u);
 
   vec3.normalize(n, n);
   vec3.cross(u, n, v);
@@ -121,7 +121,7 @@ export const createField = (cell: vec3[], i: number) => {
         //
         // spawn particles when the field is fully grown
 
-        if ((0 | (date * 1000)) % 6 === 0) {
+        if ((0 | (date * 1754 + i)) % 15 === 0) {
           // debugger;
 
           const positionA: vec3 = [999999, 999999, 999999];
@@ -142,9 +142,9 @@ export const createField = (cell: vec3[], i: number) => {
             );
           }
 
-          const s = 0.2;
+          const s = 0.16;
 
-          const l = (1 + Math.random() * 2) * 0.5 * s;
+          const l = (1 + Math.random() * 2) * 0.3 * s;
 
           const positionB = vec3.copy([] as any, positionA);
           vec3.scaleAndAdd(positionB, positionB, up, l);
@@ -159,7 +159,7 @@ export const createField = (cell: vec3[], i: number) => {
             sizeA: s * 0.06,
             sizeB: s * 0.015,
             startDate: date,
-            duration: l * 10,
+            duration: l * 15,
             color: hintColor,
           });
         }
@@ -197,7 +197,7 @@ export const createField = (cell: vec3[], i: number) => {
           Math.max(r * 0.01, (r - d) * (0.7 + Math.random() + 0.7))
         );
         vec3.normalize(tmp0, tmp0);
-        const s = 0.5;
+        const s = 0.2;
 
         const l = (1 + Math.random() * 5) * 0.2 * s;
 
@@ -216,9 +216,12 @@ export const createField = (cell: vec3[], i: number) => {
           startDate: date,
           duration: l * 0.45,
           // color: [0, 0, Math.random()],
-          color: wheatColorEnd.map((x) =>
-            clamp(x + 0.37 * (Math.random() - 0.5), 0, 1)
-          ),
+          color:
+            Math.random() > 0.7
+              ? wheatColorEnd.map((x) =>
+                  clamp(x + 0.37 * (Math.random() - 0.5), 0, 1)
+                )
+              : hintColor,
         });
       }
     }
@@ -227,10 +230,10 @@ export const createField = (cell: vec3[], i: number) => {
     // spawn particles for each touches on the field
     for (const touch of touches) {
       if (touch.i === i)
-        for (let k = 0; k < (0.12 - (date - touch.date)) * 8; k++) {
+        for (let k = 0; k < (0.12 - (date - touch.date)) * 12; k++) {
           const positionA = vec3.copy([] as any, touch.p);
 
-          const s = 0.5;
+          const s = 0.18;
 
           vec3.copy(tmp0, zero);
           const phi = Math.random() * Math.PI * 2;
@@ -239,7 +242,7 @@ export const createField = (cell: vec3[], i: number) => {
 
           vec3.scaleAndAdd(positionA, positionA, tmp0, Math.random() * s * 0.4);
 
-          const l = (1 + 0.8 * Math.random()) * 0.23;
+          const l = (1 + 0.8 * Math.random()) * 0.06;
 
           vec3.scaleAndAdd(tmp0, tmp0, n, Math.random() + 0.1);
           vec3.normalize(tmp0, tmp0);
@@ -257,10 +260,13 @@ export const createField = (cell: vec3[], i: number) => {
             sizeA: s * 0.07,
             sizeB: s * 0.1 + s * (Math.random() + 2) * 0.01,
             startDate: date,
-            duration: l,
-            color: wheatColorEnd.map((x) =>
-              clamp(x + 0.37 * (Math.random() - 0.5), 0, 1)
-            ),
+            duration: l * 2,
+            color:
+              Math.random() > 0.7
+                ? wheatColorEnd.map((x) =>
+                    clamp(x + 0.37 * (Math.random() - 0.5), 0, 1)
+                  )
+                : hintColor,
           });
         }
     }

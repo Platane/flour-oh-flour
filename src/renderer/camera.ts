@@ -4,6 +4,9 @@ import { clamp } from "../math/utils";
 import { Handler } from "../controls-type";
 import { up } from "../constant";
 
+const maxZoom = 10;
+const minZoom = 0;
+
 // initialize static perspective matrix
 export const perspectiveMatrix = new Float32Array(4 * 4);
 const fovX = Math.PI / 3;
@@ -15,7 +18,7 @@ mat4.perspective(perspectiveMatrix, fovX, aspect, near, far);
 // camera primitive
 let phi = 1;
 let theta = 0;
-let zoom = 16;
+let zoom = Math.floor((maxZoom + minZoom) / 2);
 const rotationSpeed = 3;
 export const lookAtPoint: vec3 = [0, 0, 0];
 export const eye: vec3 = [0, 0, 1];
@@ -31,7 +34,7 @@ export const worldMatrix = new Float32Array(4 * 4);
 export const lookAtMatrix3Inv = new Float32Array(3 * 3);
 
 const update = () => {
-  const radius = 0.1 + zoom * 0.5;
+  const radius = 0.87 + zoom * 0.07;
 
   const sinPhiRadius = Math.sin(phi) * radius;
   eye[0] = sinPhiRadius * Math.sin(theta);
@@ -65,7 +68,7 @@ const rotateMove: Handler = ([{ pageX: x, pageY: y }]) => {
     theta -= (dx / window.innerHeight) * rotationSpeed;
     phi -= (dy / window.innerHeight) * rotationSpeed;
 
-    phi = clamp(phi, 0.001, (4 * Math.PI) / 5);
+    phi = clamp(phi, Math.PI / 5, (2.2 * Math.PI) / 5);
 
     px = x;
     py = y;
@@ -90,7 +93,7 @@ const scaleMove: Handler = (a) => {
 
     const l = Math.sqrt((ax - bx) ** 2 + (ay - by) ** 2);
 
-    zoom = clamp((zoom0 / l) * l0, 0, 50);
+    zoom = clamp((zoom0 / l) * l0, minZoom, maxZoom);
 
     update();
   }
@@ -122,7 +125,7 @@ export const onTouchEnd: Handler = (touches) => {
 canvas.addEventListener(
   "wheel",
   (event) => {
-    zoom = clamp(zoom + (event.deltaY < 0 ? -1 : 1), 0, 50);
+    zoom = clamp(zoom + (event.deltaY < 0 ? -1 : 1), minZoom, maxZoom);
 
     update();
   },

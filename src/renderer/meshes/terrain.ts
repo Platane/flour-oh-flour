@@ -23,7 +23,7 @@ import { createWindmill } from "../geometries/windmill";
 //
 const cellN = 12;
 const cellCloudN = 60;
-const triangleCloudN = 1200;
+const triangleCloudN = 800;
 const triangleCloudDistance = 0.00005;
 
 //

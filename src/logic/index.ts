@@ -124,17 +124,34 @@ export const stepWorld = () => {
 
   while (touches[0] && touches[0].date + 500 < date) touches.shift();
 
-  // pre.innerText = JSON.stringify(
-  //   prepare({
-  //     date,
-  //     cells,
-  //     flourCount,
+  if (process.env.NODE_ENV !== "production") {
+    if (!pre) {
+      pre = document.createElement("pre");
+      pre.style.backgroundColor = "#ddd8";
+      pre.style.position = "fixed";
+      pre.style.top = "0";
+      pre.style.right = "0";
+      pre.style.zIndex = "2";
+      pre.style.width = "200px";
+      pre.style.fontSize = "10px";
+      pre.style.padding = "4px";
+      pre.style.margin = "2px";
+      pre.style.pointerEvents = "none";
+      document.body.appendChild(pre);
+    }
 
-  //     // touches,
-  //   }),
-  //   null,
-  //   2
-  // );
+    pre.innerText = JSON.stringify(
+      prepare({
+        date,
+        cells,
+        flourCount,
+
+        // touches,
+      }),
+      null,
+      2
+    );
+  }
 };
 
 const prepare = (o: any): any => {
@@ -147,15 +164,4 @@ const prepare = (o: any): any => {
   return o;
 };
 
-const pre = document.createElement("pre");
-pre.style.backgroundColor = "#ddd8";
-pre.style.position = "fixed";
-pre.style.top = "0";
-pre.style.right = "0";
-pre.style.zIndex = "2";
-pre.style.width = "200px";
-pre.style.fontSize = "10px";
-pre.style.padding = "4px";
-pre.style.margin = "2px";
-pre.style.pointerEvents = "none";
-document.body.appendChild(pre);
+let pre: any;
