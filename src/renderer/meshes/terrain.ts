@@ -1,10 +1,20 @@
 import { generatePerlinNoise } from "../../math/generatePerlinNoise";
 import { vec2, vec3, mat4 } from "gl-matrix";
 import { getDelaunayTriangulation } from "../../math/getDelaunayTriangulation";
-import { cells as logicCells, maxGrowth } from "../../logic";
-import { epsilon, tmp1, tmp2, up, z } from "../../constant";
+import {
+  flourBags as logicFlourBags,
+  date,
+  cells as logicCells,
+  maxGrowth,
+} from "../../logic";
+import { epsilon, tmp1, tmp2, up, z, x } from "../../constant";
 import { createField } from "../geometries/field";
-import { n, pushFace } from "../globalBuffers/static";
+import {
+  n,
+  pushFace as pushFaceStatic,
+  pushFlatFace as pushFlatFaceStatic,
+} from "../globalBuffers/static";
+import { pushFlatFace as pushFlatFaceDynamic } from "../globalBuffers/dynamic";
 import { getVoronoiTesselation } from "../../math/getVoronoiTesselation";
 import {
   getPolygonArea,
@@ -17,6 +27,14 @@ import {
 import { getSegmentIntersection } from "../../math/getSegmentIntersection";
 import { hillColor, dirtColor } from "../colors";
 import { createWindmill } from "../geometries/windmill";
+import { createFlourBag, bagSize } from "../geometries/flourBag";
+import {
+  vertices as staticVertices,
+  normals as staticNormals,
+  colors as staticColors,
+  n as staticN,
+} from "../globalBuffers/static";
+import { staticMaterial } from "../render";
 
 //
 // constant
@@ -487,7 +505,7 @@ for (const cell of cells) {
   vec3.normalize(nn, nn);
 
   let a = n;
-  pushFace(vertices, dirtColor, nn);
+  pushFaceStatic(vertices, dirtColor, nn);
 
   const i = logicCells.length;
   logicCells.push({
@@ -521,7 +539,7 @@ for (const indexes of fillIndexes) {
 
   vec3.normalize(nn, nn);
 
-  pushFace(vertices, hillColor, nn);
+  pushFaceStatic(vertices, hillColor, nn);
 }
 
 //
@@ -574,6 +592,124 @@ while (kk < 100 && windmillPositions.length < 6) {
     k = 0;
   }
 }
+
+//
+// define flour stack
+//
+const flourStackX = Math.random() * 0.4 + 0.3;
+const flourStackY = Math.random() * 0.4 + 0.3;
+
+const getFlourStackPosition = () => {
+  let r = 0.1;
+
+  for (let k = 160; k--; ) {
+    const x = Math.random();
+    const y = Math.random();
+
+    const p: vec3 = [x, y, 0];
+
+    if (
+      Math.hypot(flourStackX - x, flourStackY - y) < r &&
+      isInsidePotato(x, y) &&
+      distanceToPotato(x, y) > 0.14 &&
+      !cells.some((cell) => isInsidePolygon(cell, z, [x, y, 0])) &&
+      windmillPositions.every((p0) => vec2.distance(p as any, p0 as any) > 0.2)
+    ) {
+      const z = getAltitude(x, y);
+
+      p[0] = (p[0] - potatoCenter[0]) * 2;
+      p[2] = (p[1] - potatoCenter[1]) * 2;
+      p[1] = z + bagSize;
+
+      return p;
+    }
+
+    r *= 1.01;
+  }
+
+  return [0, -10, 0] as vec3;
+};
+
+const stack: vec3[] = [];
+
+const flourBags: {
+  a: vec3;
+  b: vec3;
+  c: vec3;
+  angle: number;
+  date0: number;
+  duration: number;
+}[] = [];
+
+const flourTransform: mat4 = [] as any;
+
+// setInterval(() => {
+//   logicFlourBags.push(0);
+// }, 50);
+
+updates.push(() => {
+  while (logicFlourBags[stack.length] !== undefined) {
+    const cellIndex = logicFlourBags[stack.length];
+
+    const cell = cells[cellIndex];
+
+    const a = getPolygonCenter([] as any, cell);
+    vec3.transformMat4(a, a, transform);
+    a[1] += bagSize;
+
+    const b = getFlourStackPosition();
+
+    for (const p of stack) {
+      const l = vec2.distance(b as any, p as any);
+
+      if (l < bagSize) {
+        vec3.copy(b, p);
+        b[1] += bagSize * 2.01;
+      }
+    }
+
+    const c: vec3 = [(a[0] + b[0]) / 2, 1.2, (a[2] + b[2]) / 2];
+
+    stack.push(b);
+
+    flourBags.push({
+      a,
+      b,
+      c,
+      angle: Math.random() * Math.PI * 2,
+      date0: date,
+      duration: (vec3.distance(a, c) + vec3.distance(c, b)) / 3,
+    });
+  }
+
+  for (let i = flourBags.length; i--; ) {
+    const { a, b, c, date0, duration } = flourBags[i];
+
+    const k = Math.min((date - date0) / duration, 1);
+
+    const p: vec3 = [
+      //
+      a[0] * (1 - k) * (1 - k) + c[0] * (1 - k) * k + b[0] * k * k,
+      a[1] * (1 - k) * (1 - k) + c[1] * (1 - k) * k + b[1] * k * k,
+      a[2] * (1 - k) * (1 - k) + c[2] * (1 - k) * k + b[2] * k * k,
+    ];
+
+    mat4.fromTranslation(flourTransform, p);
+
+    if (false && k === 1) {
+      // flourBags.splice(i, 1);
+      // createFlourBag(flourTransform, pushFlatFaceStatic);
+      // staticMaterial.updateGeometry(
+      //   staticColors,
+      //   staticVertices,
+      //   staticNormals,
+      //   staticN * 3
+      // );
+    } else {
+      createFlourBag(flourTransform, pushFlatFaceDynamic);
+    }
+  }
+});
 
 export const update = () => {
   for (const update of updates) update();

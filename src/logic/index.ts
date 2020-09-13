@@ -2,7 +2,7 @@ import { vec3 } from "gl-matrix";
 
 export let date = 0;
 
-export let flourCount = 0;
+export let flourBags: number[] = [];
 
 export const actionStack: (
   | { type: "work-cell"; cellIndex: number; touchPosition: vec3 }
@@ -69,7 +69,7 @@ export const stepWorld = () => {
               // @ts-ignore
               cell.growingSinceDate = date;
 
-              flourCount += cell.area;
+              flourBags.push(action.cellIndex);
             }
             break;
           }
@@ -144,7 +144,7 @@ export const stepWorld = () => {
       prepare({
         date,
         cells,
-        flourCount,
+        flourBags,
 
         // touches,
       }),

@@ -17,8 +17,8 @@ import { update as updateTerrain } from "./meshes/terrain";
 import { update as updateCursor } from "./meshes/cursor";
 import { createMaterial } from "./materials";
 
-const staticMaterial = createMaterial(gl.STATIC_DRAW);
-const dynamicMaterial = createMaterial(gl.DYNAMIC_DRAW);
+export const staticMaterial = createMaterial(gl.STATIC_DRAW);
+export const dynamicMaterial = createMaterial(gl.DYNAMIC_DRAW);
 
 staticMaterial.updateGeometry(
   staticColors,
