@@ -48,12 +48,12 @@ jobs:
         with:
           name: build
           path: dist
-
-      - uses: actions/checkout@v1
-
+    
       - name: generate badge
-        run: |
+          run: |
           node -e "const s=require('fs').statSync('dist/bundle.zip').size;console.log(JSON.stringify({label:'size',message:(s/1024).toFixed(2)+'K',color:s<13312?'success':'important'}))" > dist/shieldio_size.json
+          
+      - uses: actions/checkout@v1
 
       - name: copy screenshots
         run: |
