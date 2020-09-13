@@ -56,6 +56,7 @@ jobs:
 
       - name: copy screenshots
         run: |
+          mkdir dist/images
           cp -r doc/screenshots/* dist/images
 
       - name: deploy to gh-pages
