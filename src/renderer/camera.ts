@@ -34,7 +34,7 @@ export const worldMatrix = new Float32Array(4 * 4);
 export const lookAtMatrix3Inv = new Float32Array(3 * 3);
 
 const update = () => {
-  const radius = 0.87 + zoom * 0.07;
+  const radius = 0.8 + zoom * 0.09;
 
   const sinPhiRadius = Math.sin(phi) * radius;
   eye[0] = sinPhiRadius * Math.sin(theta);

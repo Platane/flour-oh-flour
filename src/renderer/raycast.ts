@@ -1,4 +1,4 @@
-import { mat3, vec3, mat4 } from "gl-matrix";
+import { vec3, mat4 } from "gl-matrix";
 import { worldMatrix, eye } from "./camera";
 import { epsilon } from "../constant";
 
@@ -15,10 +15,7 @@ const CA: vec3 = [] as any;
 
 const v: vec3 = [] as any;
 
-const tmp: vec3 = [] as any;
-const p: vec3 = [] as any;
-
-export const raycast = (
+export const raycastFromScreen = (
   x: number,
   y: number,
   vertices: number[],
@@ -31,6 +28,18 @@ export const raycast = (
   vec3.sub(v, v, eye);
   vec3.normalize(v, v);
 
+  return raycast(eye, v, vertices, n);
+};
+
+const tmp: vec3 = [] as any;
+const p: vec3 = [] as any;
+
+export const raycast = (
+  origin: vec3,
+  direction: vec3,
+  vertices: number[],
+  n: number
+) => {
   let bestT = Infinity;
   let bestP: vec3 = [0, 0, 0];
   let bestI = -1;
@@ -54,17 +63,17 @@ export const raycast = (
     vec3.cross(N, AB, BC);
     vec3.normalize(N, N);
 
-    const o = vec3.dot(N, v);
+    const o = vec3.dot(N, direction);
 
     if (Math.abs(o) > epsilon) {
-      vec3.sub(tmp, A, eye);
+      vec3.sub(tmp, A, origin);
 
       const t = vec3.dot(N, tmp) / o;
 
       if (t < bestT) {
-        p[0] = eye[0] + t * v[0];
-        p[1] = eye[1] + t * v[1];
-        p[2] = eye[2] + t * v[2];
+        p[0] = origin[0] + t * direction[0];
+        p[1] = origin[1] + t * direction[1];
+        p[2] = origin[2] + t * direction[2];
 
         const a = vec3.dot(N, vec3.cross(tmp, AB, vec3.sub(tmp, A, p))) > 0;
         const b = vec3.dot(N, vec3.cross(tmp, BC, vec3.sub(tmp, B, p))) > 0;

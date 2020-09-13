@@ -7,14 +7,18 @@ import {
   cells as logicCells,
   maxGrowth,
 } from "../../logic";
-import { epsilon, tmp1, tmp2, up, z, x } from "../../constant";
+import { epsilon, tmp1, tmp2, up, z, x, down } from "../../constant";
 import { createField } from "../geometries/field";
 import {
-  n,
+  n as staticN,
+  vertices as staticVertices,
   pushFace as pushFaceStatic,
   pushFlatFace as pushFlatFaceStatic,
 } from "../globalBuffers/static";
-import { pushFlatFace as pushFlatFaceDynamic } from "../globalBuffers/dynamic";
+import {
+  pushFlatFace as pushFlatFaceDynamic,
+  vertices,
+} from "../globalBuffers/dynamic";
 import { getVoronoiTesselation } from "../../math/getVoronoiTesselation";
 import {
   getPolygonArea,
@@ -28,6 +32,7 @@ import { getSegmentIntersection } from "../../math/getSegmentIntersection";
 import { hillColor, dirtColor } from "../colors";
 import { createWindmill } from "../geometries/windmill";
 import { createFlourBag, bagSize } from "../geometries/flourBag";
+import { raycastFromScreen, raycast } from "../raycast";
 
 //
 // constant
@@ -497,7 +502,7 @@ for (const cell of cells) {
 
   vec3.normalize(nn, nn);
 
-  let a = n;
+  let a = staticN;
   pushFaceStatic(vertices, dirtColor, nn);
 
   const i = logicCells.length;
@@ -509,7 +514,7 @@ for (const cell of cells) {
 
   updates.push(createField(vertices, i));
 
-  for (let j = a; j < n; j++) activeFaces[j] = i;
+  for (let j = a; j < staticN; j++) activeFaces[j] = i;
 }
 
 for (const indexes of fillIndexes) {
@@ -535,24 +540,29 @@ for (const indexes of fillIndexes) {
   pushFaceStatic(vertices, hillColor, nn);
 }
 
+export const fieldsN = staticN;
+
 //
 // add windmills
 //
-export const windmillPositions: vec3[] = [];
-let kk = 0;
-while (kk < 100 && windmillPositions.length < 6) {
+const windMillCenterX = Math.random() * 0.6 + 0.2;
+const windMillCenterY = Math.random() * 0.6 + 0.2;
+const windmillPositions: vec3[] = [];
+let r = 0.1;
+while (r < 0.4 && windmillPositions.length < 100) {
   const x = Math.random();
   const y = Math.random();
 
   const p: vec3 = [x, y, 0];
 
-  kk++;
+  r *= 1.02;
 
   if (
+    Math.hypot(windMillCenterX - x, windMillCenterY - y) < r &&
     isInsidePotato(x, y) &&
     distanceToPotato(x, y) > 0.14 &&
     !flatEnlargedCells.some((cell) => isInsidePolygon(cell, z, [x, y, 0])) &&
-    windmillPositions.every((p0) => vec2.distance(p as any, p0 as any) > 0.2)
+    windmillPositions.every((p0) => vec2.distance(p as any, p0 as any) > 0.012)
   ) {
     const z = getAltitude(x, y);
 
@@ -565,6 +575,8 @@ while (kk < 100 && windmillPositions.length < 6) {
 
       d = Math.max(d, getAltitude(sx, sy) - z);
     }
+
+    windmillPositions.push(p.slice() as any);
 
     p[0] = (p[0] - potatoCenter[0]) * 2;
     p[2] = (p[1] - potatoCenter[1]) * 2;
@@ -579,7 +591,6 @@ while (kk < 100 && windmillPositions.length < 6) {
       mat4.fromYRotation([] as any, Math.random() * Math.PI * 2)
     );
 
-    windmillPositions.push(p as any);
     updates.push(createWindmill(tr));
 
     k = 0;
@@ -589,35 +600,49 @@ while (kk < 100 && windmillPositions.length < 6) {
 //
 // define flour stack
 //
-const flourStackX = Math.random() * 0.4 + 0.3;
-const flourStackY = Math.random() * 0.4 + 0.3;
+let flourStackX = 0.00001;
+let flourStackY = 0.00001;
+
+while (
+  !isInsidePotato(flourStackX, flourStackY) ||
+  distanceToPotato(flourStackX, flourStackY) < 0.14 ||
+  cells.some((cell) => isInsidePolygon(cell, z, [flourStackX, flourStackY, 0]))
+) {
+  flourStackX = Math.random() * 0.6 + 0.2;
+  flourStackY = Math.random() * 0.6 + 0.2;
+}
 
 const getFlourStackPosition = () => {
-  let r = 0.1;
+  let r = 0.02;
 
-  for (let k = 160; k--; ) {
-    const x = Math.random();
-    const y = Math.random();
+  for (let k = 150; k--; ) {
+    const x = flourStackX + (Math.random() - 0.5) * 2 * r;
+    const y = flourStackY + (Math.random() - 0.5) * 2 * r;
 
     const p: vec3 = [x, y, 0];
 
     if (
+      insideUnitSquare(x, y) &&
       Math.hypot(flourStackX - x, flourStackY - y) < r &&
       isInsidePotato(x, y) &&
       distanceToPotato(x, y) > 0.14 &&
       !cells.some((cell) => isInsidePolygon(cell, z, [x, y, 0])) &&
-      windmillPositions.every((p0) => vec2.distance(p as any, p0 as any) > 0.2)
+      windmillPositions.every(
+        (p0) => vec2.distance(p as any, p0 as any) > 0.001
+      )
     ) {
-      const z = getAltitude(x, y);
-
       p[0] = (p[0] - potatoCenter[0]) * 2;
       p[2] = (p[1] - potatoCenter[1]) * 2;
-      p[1] = z + bagSize;
+      p[1] = 5;
+
+      const u = raycast(p, down, staticVertices as any, fieldsN);
+
+      p[1] = u!.p[1];
 
       return p;
     }
 
-    r *= 1.01;
+    r = r + 0.012;
   }
 
   return [0, -10, 0] as vec3;
@@ -636,7 +661,7 @@ const flourBags: {
 
 const flourTransform: mat4 = [] as any;
 
-for (let k = 300; k--; ) logicFlourBags.push(0);
+// for (let k = 300; k--; ) logicFlourBags.push(0);
 
 // setInterval(() => {
 //   for (let k = 10; k--; ) logicFlourBags.push(0);
@@ -653,13 +678,14 @@ updates.push(() => {
     a[1] += bagSize;
 
     const b = getFlourStackPosition();
+    b[1] += bagSize / 2;
 
     for (const p of stack) {
       const l = vec2.distance(b as any, p as any);
 
-      if (l < bagSize) {
+      if (l < bagSize * 0.32) {
         vec3.copy(b, p);
-        b[1] += bagSize * 1.004;
+        b[1] += bagSize * 1.03;
       }
     }
 

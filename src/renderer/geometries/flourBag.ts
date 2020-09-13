@@ -9,7 +9,7 @@ import {
 
 const base = [up, x, z];
 
-export const bagSize = 0.013;
+export const bagSize = 0.016;
 
 const plankWidth = 0.15;
 const plankThickness = 0.04;

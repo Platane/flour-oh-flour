@@ -1,11 +1,9 @@
 import { vec3 } from "gl-matrix";
 import { z, up, x, zero } from "../../constant";
 import { pushFlatFace } from "../globalBuffers/dynamic";
-import {
-  vertices as staticVertices,
-  n as staticN,
-} from "../globalBuffers/static";
-import { raycast } from "../raycast";
+import { vertices as staticVertices } from "../globalBuffers/static";
+import { raycastFromScreen } from "../raycast";
+import { fieldsN } from "./terrain";
 
 export const cursorPosition: vec3 = [0, -1, 0];
 
@@ -51,7 +49,7 @@ if (process.env.NODE_ENV !== "production")
       const x = (pageX / window.innerWidth) * 2 - 1;
       const y = -((pageY / window.innerHeight) * 2 - 1);
 
-      const u = raycast(x, y, staticVertices as any, staticN);
+      const u = raycastFromScreen(x, y, staticVertices as any, fieldsN);
 
       vec3.copy(cursorPosition, u ? u.p : zero);
     },
