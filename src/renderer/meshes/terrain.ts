@@ -15,10 +15,7 @@ import {
   pushFace as pushFaceStatic,
   pushFlatFace as pushFlatFaceStatic,
 } from "../globalBuffers/static";
-import {
-  pushFlatFace as pushFlatFaceDynamic,
-  vertices,
-} from "../globalBuffers/dynamic";
+import { pushFlatFace as pushFlatFaceDynamic } from "../globalBuffers/dynamic";
 import { getVoronoiTesselation } from "../../math/getVoronoiTesselation";
 import {
   getPolygonArea,
@@ -32,7 +29,7 @@ import { getSegmentIntersection } from "../../math/getSegmentIntersection";
 import { hillColor, dirtColor } from "../colors";
 import { createWindmill } from "../geometries/windmill";
 import { createFlourBag, bagSize } from "../geometries/flourBag";
-import { raycastFromScreen, raycast } from "../raycast";
+import { raycast } from "../raycast";
 
 //
 // constant

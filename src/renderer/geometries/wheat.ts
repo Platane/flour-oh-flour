@@ -39,6 +39,10 @@ export const createWheat = (origin: vec3, v: vec3, growth: number) => {
 
   const s = growth / maxGrowth;
 
+  const m = 0.07;
+  const u = Math.max(0, (s - (1 - m)) / m);
+  const k = (1 - Math.abs(u - 0.5) * 2) ** 2;
+
   // color randomization
   // tmp1[0] = clamp(
   //   wheatColorEnd[0] + Math.sin(12312 * origin[0] ** 2) * 0.1,
@@ -65,7 +69,7 @@ export const createWheat = (origin: vec3, v: vec3, growth: number) => {
 
   const branchSize = s * SIZE * 1.5;
   const branchBase = s * SIZE * 0.1;
-  const grainScale = s * SIZE * 0.3;
+  const grainScale = s * SIZE * 0.3 + k * SIZE * 0.22;
 
   // branch
 

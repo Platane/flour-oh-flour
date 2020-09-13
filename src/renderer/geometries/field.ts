@@ -13,7 +13,7 @@ import {
   getPolygonBoundingSphereRadius,
 } from "../../math/convexPolygon";
 
-const wheatSpace = 0.022;
+const wheatSpace = 0.026;
 const lineSpace = wheatSpace;
 // const wheatSpace = 0.01;
 // const lineSpace = 0.008;
