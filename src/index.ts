@@ -20,7 +20,7 @@ const splash = document.getElementById("splash")!;
 const onClick = () => {
   splash.removeEventListener("click", onClick);
   splash.style.opacity = "0";
-  setTimeout(() => splash.parentElement?.removeChild(splash), 200);
+  setTimeout(() => splash.parentElement!.removeChild(splash), 200);
   loop();
 };
 splash.addEventListener("click", onClick);
