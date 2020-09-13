@@ -1,4 +1,3 @@
-import { activeFaces } from "./renderer/meshes/terrain";
 import {
   vertices as staticVertices,
   n as staticN,

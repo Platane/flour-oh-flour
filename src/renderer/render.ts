@@ -20,12 +20,7 @@ import { createMaterial } from "./materials";
 export const staticMaterial = createMaterial(gl.STATIC_DRAW);
 export const dynamicMaterial = createMaterial(gl.DYNAMIC_DRAW);
 
-staticMaterial.updateGeometry(
-  staticColors,
-  staticVertices,
-  staticNormals,
-  staticN * 3
-);
+let lastStaticN = 0;
 
 gl.clearColor(0, 0, 0, 0);
 gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
@@ -55,6 +50,17 @@ export const render = () => {
     dynamicNormals,
     dynamicN * 3
   );
+
+  if (lastStaticN < staticN) {
+    staticMaterial.updateGeometry(
+      staticColors,
+      staticVertices,
+      staticNormals,
+      staticN * 3
+    );
+
+    lastStaticN = staticN;
+  }
 
   // clear canvas
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);

@@ -1,7 +1,7 @@
 import { vec3 } from "gl-matrix";
 import { cross } from "../../math/convexPolygon";
 
-const maxN = 5 * 1000;
+const maxN = 28 * 1000;
 
 export const vertices = new Float32Array(3 * 3 * maxN);
 export const normals = new Float32Array(3 * 3 * maxN);

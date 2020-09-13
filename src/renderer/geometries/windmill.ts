@@ -1,8 +1,12 @@
 import { vec3, mat4 } from "gl-matrix";
-import { faceToVertices } from "../utils/faceToVertices";
 import { pushFlatFace as pushFlatFaceStatic } from "../globalBuffers/static";
 import { pushFlatFace as pushFlatFaceDynamic } from "../globalBuffers/dynamic";
 import { date } from "../../logic";
+import {
+  windmillBodyColor,
+  windmillPlankColor,
+  windmillWingColor,
+} from "../colors";
 
 export const createWindmill = (transform: mat4) => {
   // body
@@ -90,7 +94,7 @@ export const createWindmill = (transform: mat4) => {
     ]) {
       pushFlatFaceStatic(
         face.map((v: any) => vec3.transformMat4([] as any, v, transform)),
-        [142 / 255, 92 / 255, 31 / 255]
+        windmillBodyColor
       );
     }
 
@@ -159,7 +163,7 @@ export const createWindmill = (transform: mat4) => {
     ]) {
       pushFlatFaceStatic(
         face.map((v: any) => vec3.transformMat4([] as any, v, transform)),
-        [197 / 255, 136 / 255, 71 / 255]
+        windmillPlankColor
       );
     }
   }
@@ -232,7 +236,7 @@ export const createWindmill = (transform: mat4) => {
 
             return p;
           }),
-          [212 / 255, 198 / 255, 181 / 255]
+          windmillWingColor
         );
       }
   };

@@ -28,13 +28,6 @@ import { getSegmentIntersection } from "../../math/getSegmentIntersection";
 import { hillColor, dirtColor } from "../colors";
 import { createWindmill } from "../geometries/windmill";
 import { createFlourBag, bagSize } from "../geometries/flourBag";
-import {
-  vertices as staticVertices,
-  normals as staticNormals,
-  colors as staticColors,
-  n as staticN,
-} from "../globalBuffers/static";
-import { staticMaterial } from "../render";
 
 //
 // constant
@@ -643,9 +636,11 @@ const flourBags: {
 
 const flourTransform: mat4 = [] as any;
 
+for (let k = 300; k--; ) logicFlourBags.push(0);
+
 // setInterval(() => {
-//   logicFlourBags.push(0);
-// }, 50);
+//   for (let k = 10; k--; ) logicFlourBags.push(0);
+// }, 450);
 
 updates.push(() => {
   while (logicFlourBags[stack.length] !== undefined) {
@@ -664,7 +659,7 @@ updates.push(() => {
 
       if (l < bagSize) {
         vec3.copy(b, p);
-        b[1] += bagSize * 2.01;
+        b[1] += bagSize * 1.004;
       }
     }
 
@@ -696,15 +691,9 @@ updates.push(() => {
 
     mat4.fromTranslation(flourTransform, p);
 
-    if (false && k === 1) {
-      // flourBags.splice(i, 1);
-      // createFlourBag(flourTransform, pushFlatFaceStatic);
-      // staticMaterial.updateGeometry(
-      //   staticColors,
-      //   staticVertices,
-      //   staticNormals,
-      //   staticN * 3
-      // );
+    if (k === 1) {
+      flourBags.splice(i, 1);
+      createFlourBag(flourTransform, pushFlatFaceStatic);
     } else {
       createFlourBag(flourTransform, pushFlatFaceDynamic);
     }
