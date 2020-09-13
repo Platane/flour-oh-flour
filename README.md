@@ -4,6 +4,14 @@
 
 - [game](https://platane.github.io/js13k2020)
 
+# doc
+
+- https://64.github.io/tonemapping/
+- https://mapbox.github.io/delaunator/
+- https://www.davepagurek.com/blog/realtime-shadows/
+- https://developer.nvidia.com/gpugems/gpugems3/part-ii-light-and-shadows/chapter-12-high-quality-ambient-occlusion
+- https://www.youtube.com/watch?v=eqzh8lWWyrk
+
 # License
 
 [MIT](./LICENSE)

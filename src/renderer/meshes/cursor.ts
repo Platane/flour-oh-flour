@@ -5,7 +5,7 @@ import { vertices as staticVertices } from "../globalBuffers/static";
 import { raycastFromScreen } from "../raycast";
 import { fieldsN } from "./terrain";
 
-export const cursorPosition: vec3 = [0, -1, 0];
+export const cursorPosition: vec3 = [0, -10, 0];
 
 export const update = () => {
   const base = [up, x, z];

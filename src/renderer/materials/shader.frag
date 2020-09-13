@@ -10,9 +10,9 @@ void main(void) {
 
   
 
-  vec3 staticLightDirection = vec3(1.0,1.0,1.0);
+  vec3 staticLightDirection = vec3(1.0,0.8,1.0);
   normalize(staticLightDirection);
-  float staticLightPower = clamp( dot(vNormal, staticLightDirection) , 0.0, 1.0 );
+  float staticLightPower = dot(vNormal, staticLightDirection) ;
 
   float angle = uTime * 2.0 * 1.0;
   vec3 movingLightDirection = vec3( sin(angle), 1.5, cos(angle) );
@@ -21,12 +21,7 @@ void main(void) {
 
   gl_FragColor = vec4(vColor, 1.0);
 
-  // gl_FragColor.rgb *= clamp(  staticLightPower, 0.02, 0.5 )  +  ( 1.0 + movingLightPower ) * 0.5  ;  
-  gl_FragColor.rgb *= 0.8 + clamp(  staticLightPower, -0.97, 0.99 ) * 0.4 + clamp( movingLightPower, -0.9, 0.5 ) * 0.3 ;
+  gl_FragColor.rgb *= 0.6 + clamp(  staticLightPower, -0.47, 10.0 ) * 0.45  ;
 
-  // gl_FragColor = vec4(vNormal * 0.5 + 0.5  , 1.0);
-
-  // gl_FragColor = vec4(lightDirection*0.5+0.5, 1.0);
-  // gl_FragColor = vec4(lightPower,lightPower,lightPower, 1.0);
   
 }
