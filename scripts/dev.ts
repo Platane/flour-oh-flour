@@ -6,7 +6,7 @@ import { watch, RollupWatchOptions } from "rollup";
 import { createRollupInputOptions } from "./build";
 
 const rollupWatchOptions: RollupWatchOptions = {
-  ...createRollupInputOptions(false),
+  ...createRollupInputOptions(true),
   output: {
     format: "es",
     sourcemap: true,
