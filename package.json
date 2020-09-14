@@ -1,6 +1,6 @@
 {
   "name": "flour-oh-flour",
-  "description": "js13k 2020 entry",
+  "description": "Reap wheat, Gather flour, Enjoy the farm life in this game made for the 2020 js13kGames.com competition.",
   "repository": "github:platane/flour-oh-flour",
   "version": "1.0.0",
   "private": true,
