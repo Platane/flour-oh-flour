@@ -106,6 +106,23 @@ const propertiesToMangle = [
   "normals",
   "colors",
   "color",
+
+  "positionA",
+  "positionB",
+  "angleA",
+  "angleB",
+  "sizeA",
+  "sizeB",
+  "startDate",
+
+  "date",
+  "ticTarget",
+  "ticVelocity",
+  "grownSinceDate",
+  "touchPosition",
+  "ticImmunityDate",
+  "cellIndex",
+  "duration",
 ];
 
 export const build = async () => {
@@ -139,11 +156,11 @@ export const build = async () => {
   }
 
   // replace own properties name
-  // code = code.replace(
-  //   new RegExp(`[{\,\.}](` + propertiesToMangle.join("|") + `)[^\w]`, "g"),
-  //   (x, term) =>
-  //     x.replace(term, (propertiesToMangle.indexOf(term) + 10).toString(36))
-  // );
+  code = code.replace(
+    new RegExp(`[{\,\.}](` + propertiesToMangle.join("|") + `)[^\w]`, "g"),
+    (x, term) =>
+      x.replace(term, (propertiesToMangle.indexOf(term) + 10).toString(36))
+  );
 
   const htmlContent = fs
     .readFileSync(path.resolve(__dirname, "..", "src", "index.html"))
