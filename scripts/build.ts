@@ -11,7 +11,8 @@ import mkdirp from "mkdirp";
 
 // @ts-ignore
 import babelPluginDefine from "babel-plugin-transform-define";
-
+// @ts-ignore
+import babelPluginForOr from "@babel/plugin-transform-for-of";
 // @ts-ignore
 import babelPresetTypescript from "@babel/preset-typescript";
 
@@ -22,15 +23,19 @@ export const terserOptions: MinifyOptions = {
     keep_infinity: true,
     pure_getters: true,
     unsafe_arrows: true,
+    unsafe_math: true,
+    unsafe_methods: true,
+    inline: true,
+    booleans_as_integers: true,
     passes: 10,
   },
   format: {
     wrap_func_args: false,
     comments: false,
   },
-  ecma: 2019,
+  mangle: { properties: true, toplevel: true },
+  ecma: 2020,
   toplevel: true,
-  mangle: {},
 };
 
 export const minifyHtmlOptions = {
@@ -66,6 +71,7 @@ export const createRollupInputOptions = (production: boolean) =>
               "process.env.NODE_ENV": production ? "production" : "dev",
             },
           ],
+          [babelPluginForOr, { assumeArray: true }],
         ],
       }),
 
@@ -94,34 +100,8 @@ export const rollupOutputOptions: RollupOptions = {
 
 const propertiesToMangle = [
   //
-  "updateGeometry",
-
-  "circle",
-  "center",
-  "radiusSquared",
-
-  "vertices",
-  "indexes",
-  "faces",
-  "normals",
-  "colors",
+  "type",
   "color",
-
-  "positionA",
-  "positionB",
-  "angleA",
-  "angleB",
-  "sizeA",
-  "sizeB",
-  "startDate",
-
-  "date",
-  "ticTarget",
-  "ticVelocity",
-  "grownSinceDate",
-  "touchPosition",
-  "ticImmunityDate",
-  "cellIndex",
   "duration",
 ];
 
