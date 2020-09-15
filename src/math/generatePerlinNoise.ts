@@ -1,7 +1,6 @@
 import { lerp } from "./utils";
 
-const fade = (x: number) =>
-  6 * x * x * x * x * x - 15 * x * x * x * x + 10 * x * x * x;
+const fade = (x: number) => 6 * x ** 5 - 15 * x ** 4 + 10 * x ** 3;
 
 export const generatePerlinNoise = (
   width: number,
@@ -14,7 +13,7 @@ export const generatePerlinNoise = (
   const grid = Array.from({ length: w * h }).map(() => {
     const angle = Math.random() * Math.PI * 2;
 
-    return { x: Math.cos(angle), y: Math.sin(angle) };
+    return [Math.cos(angle), Math.sin(angle)];
   });
 
   return (x: number, y: number) => {
@@ -27,15 +26,14 @@ export const generatePerlinNoise = (
 
     const ps = [
       //
-      { x: 0, y: 0 },
-      { x: 1, y: 0 },
+      [0, 0],
+      [1, 0],
+      [0, 1],
+      [1, 1],
+    ].map(([ax, ay]) => {
+      const [ux, uy] = grid[(gx + ax) * h + (gy + ay)];
 
-      { x: 0, y: 1 },
-      { x: 1, y: 1 },
-    ].map((a) => {
-      const u = grid[(gx + a.x) * h + (gy + a.y)];
-
-      return u.x * (gx + a.x - xr) + u.y * (gy + a.y - yr);
+      return ux * (gx + ax - xr) + uy * (gy + ay - yr);
     });
 
     return lerp(
