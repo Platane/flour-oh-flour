@@ -1,90 +1,56 @@
-import { vec3, mat4 } from "gl-matrix";
-import { worldMatrix, eye } from "./camera";
+import { vec3, mat4, mat3 } from "gl-matrix";
 import { epsilon } from "../constant";
+import { triangles } from "../generation/terrain/mesh";
+import { isInsidePolygon } from "../math/convexPolygon";
+import { worldMatrix, cameraOrigin } from "./shared";
 
-const worldMatrixInv: mat4 = [] as any;
+const rayDirection: vec3 = [] as any;
+const rayOrigin: vec3 = [] as any;
 
-const A: vec3 = [] as any;
-const B: vec3 = [] as any;
-const C: vec3 = [] as any;
-const N: vec3 = [] as any;
+export const raycastFromScreen = (x: number, y: number) => {
+  const m = mat4.invert([] as any, worldMatrix);
 
-const AB: vec3 = [] as any;
-const BC: vec3 = [] as any;
-const CA: vec3 = [] as any;
+  vec3.copy(rayOrigin, cameraOrigin);
 
-const v: vec3 = [] as any;
+  // get the ray direction
+  vec3.transformMat4(rayDirection, [x, y, 0.5], m);
+  vec3.sub(rayDirection, rayDirection, rayOrigin);
+  vec3.normalize(rayDirection, rayDirection);
 
-export const raycastFromScreen = (
-  x: number,
-  y: number,
-  vertices: number[],
-  n: number
-) => {
-  // get the ray
-  mat4.invert(worldMatrixInv, worldMatrix);
-  vec3.transformMat4(v, [x, y, 0.5], worldMatrixInv);
-
-  vec3.sub(v, v, eye);
-  vec3.normalize(v, v);
-
-  return raycast(eye, v, vertices, n);
+  return raycast(rayOrigin, rayDirection);
 };
 
-const tmp: vec3 = [] as any;
 const p: vec3 = [] as any;
 
-export const raycast = (
-  origin: vec3,
-  direction: vec3,
-  vertices: number[],
-  n: number
-) => {
+export const raycast = (origin: vec3, direction: vec3) => {
   let bestT = Infinity;
   let bestP: vec3 = [0, 0, 0];
   let bestI = -1;
-  for (let i = 0; i < n * 9; i += 9) {
-    A[0] = vertices[i + 0 + 0];
-    A[1] = vertices[i + 0 + 1];
-    A[2] = vertices[i + 0 + 2];
 
-    B[0] = vertices[i + 3 + 0];
-    B[1] = vertices[i + 3 + 1];
-    B[2] = vertices[i + 3 + 2];
+  for (let i = triangles.length; i--; ) {
+    const { vertices, normal } = triangles[i];
 
-    C[0] = vertices[i + 6 + 0];
-    C[1] = vertices[i + 6 + 1];
-    C[2] = vertices[i + 6 + 2];
+    const [A] = vertices;
 
-    vec3.sub(AB, B, A);
-    vec3.sub(BC, C, B);
-    vec3.sub(CA, A, C);
+    const k = vec3.dot(normal, direction);
 
-    vec3.cross(N, AB, BC);
-    vec3.normalize(N, N);
+    if (Math.abs(k) > epsilon) {
+      const t =
+        (normal[0] * (A[0] - origin[0]) +
+          normal[1] * (A[1] - origin[1]) +
+          normal[2] * (A[2] - origin[2])) /
+        k;
 
-    const o = vec3.dot(N, direction);
+      if (t > epsilon && t < bestT) {
+        vec3.copy(p, origin);
+        vec3.scaleAndAdd(p, p, direction, t);
 
-    if (Math.abs(o) > epsilon) {
-      vec3.sub(tmp, A, origin);
-
-      const t = vec3.dot(N, tmp) / o;
-
-      if (t < bestT) {
-        p[0] = origin[0] + t * direction[0];
-        p[1] = origin[1] + t * direction[1];
-        p[2] = origin[2] + t * direction[2];
-
-        const a = vec3.dot(N, vec3.cross(tmp, AB, vec3.sub(tmp, A, p))) > 0;
-        const b = vec3.dot(N, vec3.cross(tmp, BC, vec3.sub(tmp, B, p))) > 0;
-        const c = vec3.dot(N, vec3.cross(tmp, CA, vec3.sub(tmp, C, p))) > 0;
-
-        if (a === b && a === c) {
+        if (isInsidePolygon(vertices, normal, p)) {
           bestT = t;
           bestP[0] = p[0];
           bestP[1] = p[1];
           bestP[2] = p[2];
-          bestI = i / 9;
+          bestI = i;
         }
       }
     }

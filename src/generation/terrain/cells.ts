@@ -1,5 +1,5 @@
 import { vec2, vec3 } from "gl-matrix";
-import { tmp1, tmp2, z } from "../../constant";
+import { tmp1, tmp2, up } from "../../constant";
 import { getVoronoiTesselation } from "../../math/getVoronoiTesselation";
 import {
   getPolygonArea,
@@ -142,7 +142,7 @@ while (faces.length && cells.length < cellN) {
       vec3.sub(tmp1, vertices[indexes[i]], vertices[anchors[0]])
     );
 
-    const dz = d / vec3.dot(n, z);
+    const dz = d / vec3.dot(n, up);
 
     dzs[i] = dz;
   }
@@ -151,7 +151,7 @@ while (faces.length && cells.length < cellN) {
   if (dzs.some((dz) => Math.abs(dz) > 0.05)) continue;
 
   for (let i = 0; i < indexes.length; i++) {
-    vec3.scaleAndAdd(vertices[indexes[i]], vertices[indexes[i]], z, -dzs[i]);
+    vec3.scaleAndAdd(vertices[indexes[i]], vertices[indexes[i]], up, -dzs[i]);
 
     frozenVertices[indexes[i]] = true;
   }

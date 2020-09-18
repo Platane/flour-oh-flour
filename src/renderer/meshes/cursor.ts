@@ -1,11 +1,9 @@
 import { vec3 } from "gl-matrix";
 import { z, up, x, zero } from "../../constant";
-import { pushFlatFace } from "../globalBuffers/dynamic";
-import { vertices as staticVertices } from "../globalBuffers/static";
+import { basicDynamic } from "../materials";
 import { raycastFromScreen } from "../raycast";
-import { fieldsN } from "./terrain";
 
-export const cursorPosition: vec3 = [0, -10, 0];
+export const cursorPosition: vec3 = [0, 0, 0];
 
 export const update = () => {
   const base = [up, x, z];
@@ -35,23 +33,23 @@ export const update = () => {
         return p;
       });
 
-      if (tn === 1) vertices.reverse();
+      if (tn === -1) vertices.reverse();
 
-      pushFlatFace(vertices, n);
+      basicDynamic.pushFlatFace(vertices, n);
     }
   }
 };
 
-if (process.env.NODE_ENV !== "production")
-  document.body.addEventListener(
-    "mousemove",
-    ({ pageX, pageY }) => {
-      const x = (pageX / window.innerWidth) * 2 - 1;
-      const y = -((pageY / window.innerHeight) * 2 - 1);
+document.body.addEventListener(
+  "mousemove",
+  ({ pageX, pageY }) => {
+    const x = (pageX / window.innerWidth) * 2 - 1;
+    const y = -((pageY / window.innerHeight) * 2 - 1);
 
-      const u = raycastFromScreen(x, y, staticVertices as any, fieldsN);
+    const u = raycastFromScreen(x, y);
+    // const u = raycastFromScreen(0, 0);
 
-      vec3.copy(cursorPosition, u ? u.p : zero);
-    },
-    { passive: true }
-  );
+    vec3.copy(cursorPosition, u ? u.p : zero);
+  },
+  { passive: true }
+);

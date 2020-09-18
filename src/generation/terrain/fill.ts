@@ -1,22 +1,24 @@
 import { vec2, vec3 } from "gl-matrix";
 import { getDelaunayTriangulation } from "../../math/getDelaunayTriangulation";
-import { epsilon, tmp1, z } from "../../constant";
+import { epsilon, tmp1, up, zero } from "../../constant";
 import {
   getPolygonCenter,
   isInsidePolygon,
   enlargePolygon,
+  cross,
 } from "../../math/convexPolygon";
 import { getSegmentIntersection } from "../../math/getSegmentIntersection";
 import { cells } from "./cells";
 import { isInsidePotato } from "./potato";
 import { getAltitude } from "./getAltitude";
+import { distanceToPotatoHull } from "./potatoHull";
 
 //
 // constant
 //
 const triangleCloudN = 800;
 const triangleCloudDistance = 0.03;
-const triangleCloudCellDistance = 0.09;
+const triangleCloudCellDistance = 0.04;
 
 //
 // get another point cloud to fill the void between cells
@@ -27,7 +29,7 @@ export const fillPoints: vec3[] = cells
 
 fillPoints.push(...cells.map((cell) => getPolygonCenter([] as any, cell)));
 
-const flatEnlargedCells = cells.map((cell) =>
+export const flatEnlargedCells = cells.map((cell) =>
   enlargePolygon(cell, triangleCloudCellDistance).map(
     (v) => [v[0], v[1], 0] as vec3
   )
@@ -42,7 +44,7 @@ while (k < 100 && fillPoints.length < triangleCloudN) {
 
   if (
     isInsidePotato(x, y) &&
-    !flatEnlargedCells.some((cell) => isInsidePolygon(cell, z, [x, y, 0])) &&
+    !flatEnlargedCells.some((cell) => isInsidePolygon(cell, up, [x, y, 0])) &&
     fillPoints.every(
       (p0) =>
         vec2.squaredDistance(p, p0 as any) >
@@ -139,7 +141,7 @@ for (let i = fillIndexes.length; i--; ) {
   );
 
   if (
-    cells.some((cell) => isInsidePolygon(cell, z, tmp1)) ||
+    cells.some((cell) => isInsidePolygon(cell, up, tmp1)) ||
     !isInsidePotato(tmp1[0], tmp1[1])
   )
     fillIndexes.splice(i, 1);
@@ -166,27 +168,62 @@ for (let i = fillIndexes.length; i--; )
         if ((a === c && b === d) || (a === d && b === c)) countEdge++;
       }
 
-    if (countEdge === 1) {
-      let k = fillPoints.length;
-
-      fillPoints.push(
-        ...[fillPoints[a], fillPoints[b]]
-          .map((x) => {
-            const p = [x[0] - 0, x[1] - 0, 0] as vec3;
-
-            vec3.normalize(p, p);
-            p[2] = -5;
-
-            vec3.normalize(p, p);
-            vec3.scale(p, p, 0.1);
-
-            vec3.add(p, p, x);
-
-            return p;
-          })
-          .reverse()
-      );
-
-      fillIndexes.push([a, b, k], [a, k + 1, k]);
-    }
+    if (countEdge > 1) continue;
   }
+
+//   // check sides
+// const A = fillPoints[a];
+// const B = fillPoints[b];
+
+// const u = cross( [] as any, A,B,zero,up)
+
+// const M1 = vec3.lerp([] as any,A,B,0.5)
+// vec3.scaleAndAdd(M1,M1,u,0.1)
+
+// const M2 = vec3.lerp([] as any,A,B,0.5)
+// vec3.scaleAndAdd(M2,M2,u,-0.1)
+
+//   const i1 = isInsidePotato(M1[0],M1[1])
+//   const i2 = isInsidePotato(M2[0],M2[1])
+
+//   if( i1 && i2 ){
+
+//     let k = fillPoints.length;
+
+//     for( const x of [A,B] ){
+//       const p = [x[0] - 0, x[1] - 0, 0] as vec3;
+
+//         vec3.normalize(p, p);
+//         p[2] = -5;
+
+//         vec3.normalize(p, p);
+//         vec3.scale(p, p, 0.1);
+
+//         vec3.add(p, p, x);
+
+//         return p;
+//     }
+
+//   }
+
+// if (countEdge === 1) {
+
+//   fillPoints.push(
+//     ...[fillPoints[a], fillPoints[b]]
+//       .map((x) => {
+//         const p = [x[0] - 0, x[1] - 0, 0] as vec3;
+
+//         vec3.normalize(p, p);
+//         p[2] = -5;
+
+//         vec3.normalize(p, p);
+//         vec3.scale(p, p, 0.1);
+
+//         vec3.add(p, p, x);
+
+//         return p;
+//       })
+//       .reverse()
+//   );
+
+//   fillIndexes.push([a, b, k], [a, k + 1, k]);

@@ -1,22 +1,24 @@
+import "./renderer/camera";
 import "./debug/mock-random";
 // import "./debug/debug-generation-potato";
-import "./debug/debug-generation-mesh";
-// import "./debug/debug-generation-terrain";
-// import "./controls";
-// import "./action";
+// import "./debug/debug-generation-mesh";
+import "./debug/debug-raycasting";
+import "./controls";
 
 // import { stepWorld } from "./logic";
-// import { render } from "./renderer/render";
+import { render } from "./renderer/render";
 
 // // import "./renderer/meshes/terrain-debug";
 
 // render();
 
-// const loop = () => {
-//   render();
-//   stepWorld();
-//   requestAnimationFrame(loop);
-// };
+const loop = () => {
+  render();
+  // stepWorld();
+  requestAnimationFrame(loop);
+};
+
+loop();
 
 const splash = document.getElementById("splash")!;
 splash.style.opacity = "0";

@@ -1,32 +1,31 @@
 import { vec3 } from "gl-matrix";
 import { up } from "../../constant";
+import { cross } from "../../math/convexPolygon";
 import { cells } from "./cells";
 import { fillIndexes, fillPoints } from "./fill";
 
 export const triangles: {
   vertices: vec3[];
-
-  // edges[i] is either vertices[i+1] - vertices[i]  or  vertices[i] - vertices[i-1]
-  edges: vec3[];
-
   normal: vec3;
   cellIndex: number | null;
 }[] = [];
 
 const push = (vertices: vec3[], cellIndex: number | null) => {
-  const edges = vertices.map((_, i, arr) =>
-    vec3.sub([] as any, arr[i], arr[(i + 1) % 3])
+  const normal = cross(
+    [] as any,
+    vertices[1],
+    vertices[0],
+    vertices[2],
+    vertices[0]
   );
-
-  const normal = vec3.cross([] as any, edges[0], edges[1]);
   vec3.normalize(normal, normal);
 
   if (vec3.dot(normal, up) < 0) {
     vertices.reverse();
-    edges.reverse();
+    vec3.scale(normal, normal, -1);
   }
 
-  triangles.push({ vertices, edges, normal, cellIndex });
+  triangles.push({ vertices, normal, cellIndex });
 };
 
 for (let i = cells.length; i--; )

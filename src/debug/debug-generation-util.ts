@@ -1,27 +1,10 @@
 import { vec2 } from "gl-matrix";
 import { isInsidePotato } from "../generation/terrain/potato";
+import { debugContainer } from "./debug-util";
 
-export const l = 800;
+export const l = 300;
 export const s = 2 / l;
 const potatoCanvas = document.createElement("canvas");
-
-const debugContainer = document.createElement("div");
-document.body.appendChild(debugContainer);
-debugContainer.style.position = "absolute";
-debugContainer.style.top = "0px";
-debugContainer.style.left = "0px";
-debugContainer.style.zIndex = "3";
-debugContainer.style.overflow = "scroll";
-debugContainer.style.width = "100%";
-debugContainer.style.margin = "4px";
-debugContainer.style.display = "flex";
-debugContainer.style.flexDirection = "column";
-debugContainer.style.justifyContent = "start";
-debugContainer.style.alignItems = "start";
-debugContainer.style.flexDirection = "column";
-debugContainer.addEventListener("click", () => {
-  // debugContainer.style.display = "none";
-});
 
 export const pixels: [number, number][] = [];
 
