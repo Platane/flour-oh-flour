@@ -6,6 +6,7 @@ debugContainer.style.left = "0px";
 debugContainer.style.zIndex = "3";
 debugContainer.style.overflowY = "scroll";
 debugContainer.style.width = "calc( 100% - 8px )";
+debugContainer.style.height = "100%";
 debugContainer.style.margin = "4px";
 debugContainer.style.display = "flex";
 debugContainer.style.flexDirection = "column";

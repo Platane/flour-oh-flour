@@ -1,4 +1,3 @@
-import { vec2 } from "gl-matrix";
 import { cells, debugFaces, vertices } from "../generation/terrain/cells";
 import {
   debugOriginFillIndexes,

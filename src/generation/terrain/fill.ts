@@ -14,7 +14,7 @@ import { getAltitude } from "./getAltitude";
 //
 // constant
 //
-const triangleCloudN = 800;
+const triangleCloudN = 500;
 const triangleCloudDistance = 0.03;
 const triangleCloudCellDistance = 0.04;
 

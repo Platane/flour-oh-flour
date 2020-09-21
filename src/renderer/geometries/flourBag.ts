@@ -1,11 +1,11 @@
 import { vec3, mat4 } from "gl-matrix";
-import { pushFlatFace as defaultPushFlatFace } from "../globalBuffers/dynamic";
 import { up, x, z } from "../../constant";
 import {
   flourBagBodyColor,
   flourBagPlankColor,
   wheatColorEnd,
 } from "../colors";
+import { BasicMaterial } from "../materials/basic";
 
 const base = [up, x, z];
 
@@ -100,10 +100,7 @@ const kernel = [
   },
 ];
 
-export const createFlourBag = (
-  transform: mat4,
-  pushFlatFace: typeof defaultPushFlatFace
-) => {
+export const createFlourBag = (transform: mat4, material: BasicMaterial) => {
   for (let k = 6; k--; ) {
     const u = base[(k + 0) % 3];
     const v = base[(k + 1) % 3];
@@ -124,9 +121,9 @@ export const createFlourBag = (
           return p;
         });
 
-        if (s === -1) vertices.reverse();
+        if (s === 1) vertices.reverse();
 
-        pushFlatFace(vertices, color);
+        material.pushFlatFace(vertices, color);
       }
   }
 };

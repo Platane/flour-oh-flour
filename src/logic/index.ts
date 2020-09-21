@@ -41,7 +41,7 @@ export const cells: Cell[] = terrainCells.map(
   () =>
     ({
       type: "growing",
-      growth: maxGrowth * Math.random() * 10.8,
+      growth: maxGrowth * Math.random() * 0.8,
     } as any)
 );
 

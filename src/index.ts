@@ -17,15 +17,12 @@ const loop = () => {
   requestAnimationFrame(loop);
 };
 
-loop();
-
 const splash = document.getElementById("splash")!;
-splash.style.opacity = "0";
 
-// const onClick = () => {
-//   splash.removeEventListener("click", onClick);
-//   splash.style.opacity = "0";
-//   setTimeout(() => splash.parentElement!.removeChild(splash), 200);
-//   loop();
-// };
-// splash.addEventListener("click", onClick);
+const onClick = () => {
+  splash.removeEventListener("click", onClick);
+  splash.style.opacity = "0";
+  setTimeout(() => splash.parentElement!.removeChild(splash), 200);
+  loop();
+};
+splash.addEventListener("click", onClick);
