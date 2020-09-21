@@ -16,7 +16,7 @@ import { debugContainer } from "./debug-util";
       const u = raycastFromScreen((x / l) * 2 - 1, -((y / l) * 2 - 1));
 
       ctx.beginPath();
-      ctx.fillStyle = `hsl(0,0%,${(u?.t || 100) * 60}%)`;
+      ctx.fillStyle = `hsl(0,0%,${((u && u.t) || 100) * 60}%)`;
       ctx.fillRect(x, y, 1, 1);
     }
 }
@@ -43,7 +43,7 @@ import { debugContainer } from "./debug-util";
         const u = raycastFromScreen((x / l) * 2 - 1, -((y / l) * 2 - 1));
 
         ctx.beginPath();
-        ctx.fillStyle = `hsl(0,0%,${(u?.t || 100) * 30}%)`;
+        ctx.fillStyle = `hsl(0,0%,${((u && u.t) || 100) * 30}%)`;
         ctx.fillRect(x, y, 1, 1);
 
         k++;
