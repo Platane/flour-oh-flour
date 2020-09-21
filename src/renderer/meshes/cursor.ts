@@ -2,10 +2,11 @@ import { vec3 } from "gl-matrix";
 import { z, up, x, zero } from "../../constant";
 import { basicDynamic } from "../materials";
 import { raycastFromScreen } from "../raycast";
+import { dynamicUpdates } from "../shared";
 
 export const cursorPosition: vec3 = [0, 0, 0];
 
-export const update = () => {
+const update = () => {
   const base = [up, x, z];
 
   for (let k = 3; k--; ) {
@@ -20,7 +21,7 @@ export const update = () => {
       [1, 1],
     ] as const;
 
-    const s = 0.01;
+    const s = 0.003;
 
     for (const tn of [1, -1]) {
       const vertices = kernel.map(([tu, tv]) => {
@@ -40,6 +41,8 @@ export const update = () => {
   }
 };
 
+dynamicUpdates.push(update);
+
 document.body.addEventListener(
   "mousemove",
   ({ pageX, pageY }) => {
@@ -47,7 +50,6 @@ document.body.addEventListener(
     const y = -((pageY / window.innerHeight) * 2 - 1);
 
     const u = raycastFromScreen(x, y);
-    // const u = raycastFromScreen(0, 0);
 
     vec3.copy(cursorPosition, u ? u.p : zero);
   },

@@ -1,119 +1,83 @@
 import { vec3 } from "gl-matrix";
-import { lookAtMatrix3Inv } from "../camera";
-import { z, tmp0, tmp1 } from "../../constant";
-import { maxGrowth } from "../../logic";
+import { zero, x, z } from "../../constant";
 import { wheatColorEnd, wheatColorStart } from "../colors";
-import { pushFace } from "../globalBuffers/dynamic";
+import { basicDynamic } from "../materials";
+import { lookAtMatrix3Inv } from "../shared";
 
-const SIZE = 0.009;
+const SIZE = 0.012;
 
-// const n: vec3 = [] as any;
-const n = tmp0;
+// const x: vec3 = [] as any;
 
 // prettier-ignore
 const kernel = [
-  // [0.2 , 0.0],
-  // [1.0 , 0.8],
-  // [0.13, 1.0],
-  // [0   , 0.4],
-
-  // [0.4   , 0.9],
-  // [0.1   , 0.1],
-  // [0.5   , 0.0],
-  // [0.9   , 0.1],
-  // [0.6   , 0.9],
-
   [  0.3 , 1.1  ],
   [  0.2 , 0.05 ],
   [  1.12, 0.6  ],
   [  1.3 , 1.25 ],
 ]
 
+const vertices: vec3[] = kernel.map(() => [] as any);
+
 const nGrain = 6;
 
-export const getRequiredFaceNumber = () => 1 + nGrain * (kernel.length - 2);
+const color: vec3 = [] as any;
+const p: vec3 = [] as any;
 
-export const createWheat = (origin: vec3, v: vec3, growth: number) => {
-  vec3.cross(n, v, z);
-  vec3.normalize(n, n);
-
-  const s = growth / maxGrowth;
-
+export const createWheat = (origin: vec3, v: vec3, unitGrowth: number) => {
   const m = 0.07;
-  const u = Math.max(0, (s - (1 - m)) / m);
-  const k = (1 - Math.abs(u - 0.5) * 2) ** 2;
+  const u = Math.max(0, (unitGrowth - (1 - m)) / m);
+  const endHop = (1 - Math.abs(u - 0.5) * 2) ** 2;
 
-  // color randomization
-  // tmp1[0] = clamp(
-  //   wheatColorEnd[0] + Math.sin(12312 * origin[0] ** 2) * 0.1,
-  //   0,
-  //   1
-  // );
-  // tmp1[1] = clamp(
-  //   wheatColorEnd[1] + Math.sin(122 * origin[1] ** 2) * 0.1,
-  //   0,
-  //   1
-  // );
-  // tmp1[2] = clamp(
-  //   wheatColorEnd[2] + Math.sin(1227 * origin[0] ** 2 + 645 * origin[1]) * 0.05,
-  //   0,
-  //   1
-  // );
+  vec3.lerp(color, wheatColorStart as any, wheatColorEnd as any, unitGrowth);
 
-  const color = vec3.lerp(
-    tmp1,
-    wheatColorStart as any,
-    wheatColorEnd as any,
-    s
-  );
+  const branchSize = unitGrowth * SIZE * 1.5;
+  const branchBase = unitGrowth * SIZE * 0.14;
+  const grainScale = unitGrowth * SIZE * 0.3 + endHop * SIZE * 0.22;
 
-  const branchSize = s * SIZE * 1.5;
-  const branchBase = s * SIZE * 0.1;
-  const grainScale = s * SIZE * 0.3 + k * SIZE * 0.22;
-
+  //
   // branch
+  //
+  for (let k = 2; k--; ) {
+    vec3.scale(p, x, -branchBase * (k * 2 - 1));
+    vec3.transformMat3(p, p, lookAtMatrix3Inv);
+    vec3.add(p, p, origin);
+    p[1] -= branchSize * 0.04;
 
-  const branchFace = [
-    vec3.scale([] as any, n, -branchBase),
-    vec3.scale([] as any, n, branchBase),
-  ].map((out: any) => {
-    vec3.transformMat3(out, out, lookAtMatrix3Inv);
+    basicDynamic.pushPoint(p, color, z);
+  }
 
-    vec3.add(out, out, origin);
-    out[1] -= branchSize * 0.04;
+  vec3.scale(p, v, branchSize + (nGrain * grainScale) / 2);
+  vec3.add(p, p, origin);
+  basicDynamic.pushPoint(p, color, z);
 
-    return out as vec3;
-  });
-
-  const out: vec3 = [] as any;
-  vec3.scale(out, v, branchSize + (nGrain * grainScale) / 2);
-  vec3.add(out, out, origin);
-  branchFace.push(out);
-
-  pushFace(branchFace, color, z);
-
+  //
   // grains
+  //
   for (let k = nGrain; k--; ) {
     const dx = k >> 1;
     const uy = k % 2 ? 1 : -1;
 
-    const vertices = kernel.map(([x, y]) => {
-      const out: vec3 = [
-        (y + (0.1 + 1 - k / nGrain) * 0.05) * uy * grainScale,
-        (x - 0.5) * grainScale,
-        0,
-      ];
+    for (let i = kernel.length; i--; ) {
+      vec3.set(
+        vertices[i],
+        (kernel[i][0] + (0.1 + 1 - k / nGrain) * 0.05) * uy * grainScale,
+        (kernel[i][1] - 0.5) * grainScale,
+        0
+      );
 
-      vec3.transformMat3(out, out, lookAtMatrix3Inv);
+      vec3.transformMat3(vertices[i], vertices[i], lookAtMatrix3Inv);
 
-      vec3.add(out, out, origin);
-      vec3.scaleAndAdd(out, out, v, branchSize + (dx + uy * 0.1) * grainScale);
+      vec3.add(vertices[i], vertices[i], origin);
+      vec3.scaleAndAdd(
+        vertices[i],
+        vertices[i],
+        v,
+        branchSize + (dx + uy * 0.1) * grainScale
+      );
+    }
 
-      return out;
-    });
+    if (uy === -1) vertices.reverse();
 
-    if (uy === 1) vertices.reverse();
-
-    pushFace(vertices, color, z);
+    basicDynamic.pushFace(vertices, color, z);
   }
 };

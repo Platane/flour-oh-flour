@@ -2,10 +2,11 @@ import "./renderer/camera";
 import "./debug/mock-random";
 // import "./debug/debug-generation-potato";
 // import "./debug/debug-generation-mesh";
-import "./debug/debug-raycasting";
+// import "./debug/debug-raycasting";
 import "./controls";
 
 import { stepWorld } from "./logic";
+import "./action";
 import { render } from "./renderer/render";
 
 render();

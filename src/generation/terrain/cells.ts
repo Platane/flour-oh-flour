@@ -68,18 +68,6 @@ while (faces.length && cells.length < cellN) {
   )
     continue;
 
-  // // if the shape have edge too small
-  // // ignore
-  // // because it's causing issue with the inside detection
-  // if (
-  //   points.some((_, i, arr) => {
-  //     return (
-  //       vec2.distance(arr[i] as any, arr[(i + 1) % arr.length] as any) < 0.005
-  //     );
-  //   })
-  // )
-  //   continue;
-
   // if the shape is not pretty enough
   // ignore
 
@@ -126,23 +114,23 @@ while (faces.length && cells.length < cellN) {
   }
 
   // normal of the final plane
-  const n = vec3.cross(
+  const normal = vec3.cross(
     [] as any,
     vec3.sub(tmp1, vertices[anchors[1]], vertices[anchors[0]]),
     vec3.sub(tmp2, vertices[anchors[1]], vertices[anchors[2]])
   );
-  vec3.normalize(n, n);
+  vec3.normalize(normal, normal);
 
   const dzs: number[] = [];
 
   // prepare to move the vertices inside the plan
   for (let i = 0; i < indexes.length; i++) {
     const d = vec3.dot(
-      n,
+      normal,
       vec3.sub(tmp1, vertices[indexes[i]], vertices[anchors[0]])
     );
 
-    const dz = d / vec3.dot(n, up);
+    const dz = d / vec3.dot(normal, up);
 
     dzs[i] = dz;
   }
@@ -155,6 +143,9 @@ while (faces.length && cells.length < cellN) {
 
     frozenVertices[indexes[i]] = true;
   }
+
+  // ensure cell is up faced
+  if (vec3.dot(up, normal) > 0) points.reverse();
 
   // add to the cell list
   cells.push(points);

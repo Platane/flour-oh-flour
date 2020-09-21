@@ -1,8 +1,8 @@
 import { canvas } from "./canvas";
 import { onTouchStart, onTouchMove, onTouchEnd } from "./renderer/camera";
-// import { onTap } from "./action";
+import { onTap } from "./action";
 import { Handler } from "./controls-type";
-// import { onHover } from "./hover";
+import { onHover } from "./hover";
 
 let downTimeStamp = 0;
 let t0: { pageX: number; pageY: number }[];
@@ -13,12 +13,14 @@ const onStart: Handler = (t) => {
 };
 const onMove: Handler = (t) => {
   onTouchMove(t);
-  // onHover(t);
+  onHover(t);
+
+  if (t0 && Math.abs(t0[0].pageX - t[0].pageX) > 30) downTimeStamp = 0;
 };
 const onEnd: Handler = (t) => {
   onTouchEnd(t);
 
-  // if (Date.now() < downTimeStamp + 300) onTap(t0);
+  if (Date.now() < downTimeStamp + 300) onTap(t0);
 };
 
 canvas.addEventListener("mousedown", (event) => onStart([event]));

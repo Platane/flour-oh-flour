@@ -1,12 +1,14 @@
 import { gl } from "../canvas";
-// import { update as updateParticles } from "./meshes/particles";
-// import { update as updateTerrain } from "./meshes/terrain";
-import { update as updateCursor } from "./meshes/cursor";
-import { update as updateWindmill } from "./meshes/windmill";
+import "./meshes/particles";
+import "./meshes/terrain";
+import "./meshes/cursor";
+import "./meshes/windmill";
+import "./meshes/field";
 
 import "./meshes/terrain";
 
 import { basicDynamic, basicStatic } from "./materials";
+import { dynamicUpdates } from "./shared";
 
 gl.clearColor(0, 0, 0, 0);
 gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
@@ -22,20 +24,7 @@ export const render = () => {
   basicDynamic.reset();
 
   // update
-  // updateParticles();
-  // updateTerrain();
-  updateCursor();
-  updateWindmill();
-
-  // basicDynamic.pushFlatFace(
-  //   [
-  //     //
-  //     [-0.5, -0.5, 0],
-  //     [0.5, -0.5, 0],
-  //     [0, 0.5, 0],
-  //   ],
-  //   [0.9, 1, 0.3]
-  // );
+  for (const u of dynamicUpdates) u();
 
   // clear canvas
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);

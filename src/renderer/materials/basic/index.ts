@@ -24,16 +24,16 @@ export const createBasicMaterial = (
   const positionBuffer = gl.createBuffer();
   const normalBuffer = gl.createBuffer();
   const colorBuffer = gl.createBuffer();
-  let nBuffer = 0;
+  let vertexCountBuffer = 0;
 
   const positions = new Float32Array(3 * 3 * maxIndex);
   const normals = new Float32Array(3 * 3 * maxIndex);
   const colors = new Float32Array(3 * 3 * maxIndex);
-  let n = 0;
+  let vertexCount = 0;
 
   const reset = () => {
-    nBuffer = 0;
-    n = 0;
+    vertexCountBuffer = 0;
+    vertexCount = 0;
   };
 
   const pushPoint = (
@@ -41,19 +41,19 @@ export const createBasicMaterial = (
     color: number[] | vec3,
     normal: number[] | vec3
   ) => {
-    positions[n * 3 + 0] = point[0];
-    positions[n * 3 + 1] = point[1];
-    positions[n * 3 + 2] = point[2];
+    positions[vertexCount * 3 + 0] = point[0];
+    positions[vertexCount * 3 + 1] = point[1];
+    positions[vertexCount * 3 + 2] = point[2];
 
-    colors[n * 3 + 0] = color[0];
-    colors[n * 3 + 1] = color[1];
-    colors[n * 3 + 2] = color[2];
+    colors[vertexCount * 3 + 0] = color[0];
+    colors[vertexCount * 3 + 1] = color[1];
+    colors[vertexCount * 3 + 2] = color[2];
 
-    normals[n * 3 + 0] = normal[0];
-    normals[n * 3 + 1] = normal[1];
-    normals[n * 3 + 2] = normal[2];
+    normals[vertexCount * 3 + 0] = normal[0];
+    normals[vertexCount * 3 + 1] = normal[1];
+    normals[vertexCount * 3 + 2] = normal[2];
 
-    n++;
+    vertexCount++;
   };
 
   const pushFace = (
@@ -93,7 +93,7 @@ export const createBasicMaterial = (
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gIndexBuffer);
 
-    if (n !== nBuffer) {
+    if (vertexCount !== vertexCountBuffer) {
       gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, colors, usage);
       gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
@@ -106,7 +106,7 @@ export const createBasicMaterial = (
       gl.bufferData(gl.ARRAY_BUFFER, normals, usage);
       gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
 
-      nBuffer = n;
+      vertexCountBuffer = vertexCount;
     } else {
       gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
       gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
@@ -118,7 +118,7 @@ export const createBasicMaterial = (
       gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
     }
 
-    gl.drawElements(gl.TRIANGLES, nBuffer * 3, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, vertexCountBuffer, gl.UNSIGNED_SHORT, 0);
   };
 
   return { draw, reset, pushPoint, pushFlatFace, pushFace };

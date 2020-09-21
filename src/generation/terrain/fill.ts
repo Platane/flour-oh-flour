@@ -1,17 +1,15 @@
 import { vec2, vec3 } from "gl-matrix";
 import { getDelaunayTriangulation } from "../../math/getDelaunayTriangulation";
-import { epsilon, tmp1, up, zero } from "../../constant";
+import { epsilon, tmp1, up } from "../../constant";
 import {
   getPolygonCenter,
   isInsidePolygon,
   enlargePolygon,
-  cross,
 } from "../../math/convexPolygon";
 import { getSegmentIntersection } from "../../math/getSegmentIntersection";
 import { cells } from "./cells";
 import { isInsidePotato } from "./potato";
 import { getAltitude } from "./getAltitude";
-import { distanceToPotatoHull } from "./potatoHull";
 
 //
 // constant
