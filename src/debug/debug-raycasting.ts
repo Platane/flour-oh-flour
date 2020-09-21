@@ -35,7 +35,7 @@ import { debugContainer } from "./debug-util";
 
   const loop = () => {
     const s = Date.now();
-    while (Date.now() - s < 10) {
+    while (Date.now() - s < 6) {
       for (let i = 20; i--; ) {
         const x = k % l;
         const y = Math.floor(k / l) % l;

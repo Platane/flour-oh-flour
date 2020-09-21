@@ -5,16 +5,14 @@ import "./debug/mock-random";
 import "./debug/debug-raycasting";
 import "./controls";
 
-// import { stepWorld } from "./logic";
+import { stepWorld } from "./logic";
 import { render } from "./renderer/render";
 
-// // import "./renderer/meshes/terrain-debug";
-
-// render();
+render();
 
 const loop = () => {
   render();
-  // stepWorld();
+  stepWorld();
   requestAnimationFrame(loop);
 };
 

@@ -1,12 +1,11 @@
 import { vec3, mat4 } from "gl-matrix";
-import { pushFlatFace as pushFlatFaceStatic } from "../globalBuffers/static";
-import { pushFlatFace as pushFlatFaceDynamic } from "../globalBuffers/dynamic";
 import { date } from "../../logic";
 import {
   windmillBodyColor,
   windmillPlankColor,
   windmillWingColor,
 } from "../colors";
+import { basicDynamic, basicStatic } from "../materials";
 
 export const createWindmill = (transform: mat4) => {
   // body
@@ -27,7 +26,7 @@ export const createWindmill = (transform: mat4) => {
   const plankCapWidth = 0.3;
 
   // wings
-  const wingO: vec3 = [0, 2.16, -1.17];
+  const wingO: vec3 = [0, -1.17, 2.16];
   const wingL = 1.9;
   const wingMarginO = 0.1;
   const wingTopH = 0.4;
@@ -49,50 +48,50 @@ export const createWindmill = (transform: mat4) => {
     for (const face of [
       // prettier-ignore
       [
-        [ bodyBottomRadius * ax, footHeight + 0         , bodyBottomRadius * ay],
-        [ bodyBottomRadius * bx, footHeight + 0         , bodyBottomRadius * by],
-        [ bodyTopRadius    * bx, footHeight + bodyHeight, bodyTopRadius    * by],
-        [ bodyTopRadius    * ax, footHeight + bodyHeight, bodyTopRadius    * ay],
+        [ bodyBottomRadius * bx, bodyBottomRadius * by, footHeight + 0         ],
+        [ bodyBottomRadius * ax, bodyBottomRadius * ay, footHeight + 0         ],
+        [ bodyTopRadius    * ax, bodyTopRadius    * ay, footHeight + bodyHeight],
+        [ bodyTopRadius    * bx, bodyTopRadius    * by, footHeight + bodyHeight],
       ],
 
       // prettier-ignore
       [
-        [ footBottomRadius * ax, 0               , footBottomRadius * ay],
-        [ footBottomRadius * bx, 0               , footBottomRadius * by],
-        [ footTopRadius    * bx, footHeight * 1.1, footTopRadius    * by],
-        [ footTopRadius    * ax, footHeight * 1.1, footTopRadius    * ay],
+        [ footBottomRadius * bx, footBottomRadius * by, 0               ],
+        [ footBottomRadius * ax, footBottomRadius * ay, 0               ],
+        [ footTopRadius    * ax, footTopRadius    * ay, footHeight * 1.1],
+        [ footTopRadius    * bx, footTopRadius    * by, footHeight * 1.1],
       ],
 
       // prettier-ignore
       [
-        [ footBottomRadius * bx,  0                  , footBottomRadius * by],
-        [ footBottomRadius * ax,  0                  , footBottomRadius * ay],
-        [ footBottomRadius * ax, -baseExtensionHeight, footBottomRadius * ay],
-        [ footBottomRadius * bx, -baseExtensionHeight, footBottomRadius * by],
+        [ footBottomRadius * ax, footBottomRadius * ay,  0                  ],
+        [ footBottomRadius * bx, footBottomRadius * by,  0                  ],
+        [ footBottomRadius * bx, footBottomRadius * by, -baseExtensionHeight],
+        [ footBottomRadius * ax, footBottomRadius * ay, -baseExtensionHeight],
       ],
 
       // prettier-ignore
       [
-        [ roofRadius * ax, footHeight + bodyHeight             , roofRadius * ay],
-        [ roofRadius * bx, footHeight + bodyHeight             , roofRadius * by],
-        [ 0              , footHeight + bodyHeight + roofHeight, 0              ],
+        [ roofRadius * bx, roofRadius * by, footHeight + bodyHeight             ],
+        [ roofRadius * ax, roofRadius * ay, footHeight + bodyHeight             ],
+        [ 0              , 0              , footHeight + bodyHeight + roofHeight],
       ],
 
       // prettier-ignore
       [
-        [ 0                    , footHeight * 0.4, 0                    ],
-        [ bodyBottomRadius * bx, footHeight      , bodyBottomRadius * by],
-        [ bodyBottomRadius * ax, footHeight      , bodyBottomRadius * ay],
+        [ bodyBottomRadius * ax, bodyBottomRadius * ay, footHeight      ],
+        [ bodyBottomRadius * bx, bodyBottomRadius * by, footHeight      ],
+        [ 0                    , 0                    , footHeight * 0.4],
       ],
 
       // prettier-ignore
       [
-        [ 0              , footHeight + bodyHeight, 0              ],
-        [ roofRadius * bx, footHeight + bodyHeight, roofRadius * by],
-        [ roofRadius * ax, footHeight + bodyHeight, roofRadius * ay],
+        [ roofRadius * bx, roofRadius * by, footHeight + bodyHeight],
+        [ 0              , 0              , footHeight + bodyHeight],
+        [ roofRadius * ax, roofRadius * ay, footHeight + bodyHeight],
       ],
     ]) {
-      pushFlatFaceStatic(
+      basicStatic.pushFlatFace(
         face.map((v: any) => vec3.transformMat4([] as any, v, transform)),
         windmillBodyColor
       );
@@ -108,60 +107,60 @@ export const createWindmill = (transform: mat4) => {
     for (const face of [
       // prettier-ignore
       [
-        [ ( bodyBottomRadius + plankDepth ) * ax + vx * plankWidth, footHeight + 0          , ( bodyBottomRadius + plankDepth ) * ay + vy * plankWidth],
-        [ ( bodyTopRadius    + plankDepth ) * ax + vx * plankWidth, footHeight + bodyHeight , ( bodyTopRadius    + plankDepth ) * ay + vy * plankWidth],
-        [ ( bodyTopRadius    + plankDepth ) * ax                  , footHeight + bodyHeight , ( bodyTopRadius    + plankDepth ) * ay                  ],
-        [ ( bodyBottomRadius + plankDepth ) * ax                  , footHeight + 0          , ( bodyBottomRadius + plankDepth ) * ay                  ],
+        [ ( bodyTopRadius    + plankDepth ) * ax + vx * plankWidth, ( bodyTopRadius    + plankDepth ) * ay + vy * plankWidth, footHeight + bodyHeight ],
+        [ ( bodyBottomRadius + plankDepth ) * ax + vx * plankWidth, ( bodyBottomRadius + plankDepth ) * ay + vy * plankWidth, footHeight + 0          ],
+        [ ( bodyBottomRadius + plankDepth ) * ax                  , ( bodyBottomRadius + plankDepth ) * ay                  , footHeight + 0          ],
+        [ ( bodyTopRadius    + plankDepth ) * ax                  , ( bodyTopRadius    + plankDepth ) * ay                  , footHeight + bodyHeight ],
       ],
 
       // prettier-ignore
       [
-        [ ( bodyTopRadius    + plankDepth ) * bx - vx * plankWidth, footHeight + bodyHeight , ( bodyTopRadius    + plankDepth ) * by - vy * plankWidth],
-        [ ( bodyBottomRadius + plankDepth ) * bx - vx * plankWidth, footHeight + 0          , ( bodyBottomRadius + plankDepth ) * by - vy * plankWidth],
-        [ ( bodyBottomRadius + plankDepth ) * bx                  , footHeight + 0          , ( bodyBottomRadius + plankDepth ) * by                  ],
-        [ ( bodyTopRadius    + plankDepth ) * bx                  , footHeight + bodyHeight , ( bodyTopRadius    + plankDepth ) * by                  ],
+        [ ( bodyBottomRadius + plankDepth ) * bx - vx * plankWidth, ( bodyBottomRadius + plankDepth ) * by - vy * plankWidth, footHeight + 0          ],
+        [ ( bodyTopRadius    + plankDepth ) * bx - vx * plankWidth, ( bodyTopRadius    + plankDepth ) * by - vy * plankWidth, footHeight + bodyHeight ],
+        [ ( bodyTopRadius    + plankDepth ) * bx                  , ( bodyTopRadius    + plankDepth ) * by                  , footHeight + bodyHeight ],
+        [ ( bodyBottomRadius + plankDepth ) * bx                  , ( bodyBottomRadius + plankDepth ) * by                  , footHeight + 0          ],
       ],
 
       // prettier-ignore
       [
-        [ ( bodyBottomRadius + plankDepth ) * bx - vx * plankWidth, footHeight + 0          , ( bodyBottomRadius + plankDepth ) * by - vy * plankWidth],
-        [ ( bodyTopRadius    + plankDepth ) * bx - vx * plankWidth, footHeight + bodyHeight , ( bodyTopRadius    + plankDepth ) * by - vy * plankWidth],
-        [ ( bodyTopRadius                 ) * bx - vx * plankWidth, footHeight + bodyHeight , ( bodyTopRadius                 ) * by - vy * plankWidth],
-        [ ( bodyBottomRadius              ) * bx - vx * plankWidth, footHeight + 0          , ( bodyBottomRadius              ) * by - vy * plankWidth],
+        [ ( bodyTopRadius    + plankDepth ) * bx - vx * plankWidth, ( bodyTopRadius    + plankDepth ) * by - vy * plankWidth, footHeight + bodyHeight ],
+        [ ( bodyBottomRadius + plankDepth ) * bx - vx * plankWidth, ( bodyBottomRadius + plankDepth ) * by - vy * plankWidth, footHeight + 0          ],
+        [ ( bodyBottomRadius              ) * bx - vx * plankWidth, ( bodyBottomRadius              ) * by - vy * plankWidth, footHeight + 0          ],
+        [ ( bodyTopRadius                 ) * bx - vx * plankWidth, ( bodyTopRadius                 ) * by - vy * plankWidth, footHeight + bodyHeight ],
       ],
 
       // prettier-ignore
       [
-        [ ( bodyTopRadius    + plankDepth ) * ax + vx * plankWidth, footHeight + bodyHeight , ( bodyTopRadius    + plankDepth ) * ay + vy * plankWidth],
-        [ ( bodyBottomRadius + plankDepth ) * ax + vx * plankWidth, footHeight + 0          , ( bodyBottomRadius + plankDepth ) * ay + vy * plankWidth],
-        [ ( bodyBottomRadius              ) * ax + vx * plankWidth, footHeight + 0          , ( bodyBottomRadius              ) * ay + vy * plankWidth],
-        [ ( bodyTopRadius                 ) * ax + vx * plankWidth, footHeight + bodyHeight , ( bodyTopRadius                 ) * ay + vy * plankWidth],
+        [ ( bodyBottomRadius + plankDepth ) * ax + vx * plankWidth, ( bodyBottomRadius + plankDepth ) * ay + vy * plankWidth, footHeight + 0          ],
+        [ ( bodyTopRadius    + plankDepth ) * ax + vx * plankWidth, ( bodyTopRadius    + plankDepth ) * ay + vy * plankWidth, footHeight + bodyHeight ],
+        [ ( bodyTopRadius                 ) * ax + vx * plankWidth, ( bodyTopRadius                 ) * ay + vy * plankWidth, footHeight + bodyHeight ],
+        [ ( bodyBottomRadius              ) * ax + vx * plankWidth, ( bodyBottomRadius              ) * ay + vy * plankWidth, footHeight + 0          ],
       ],
 
       // prettier-ignore
       [
-        [ ( bodyTopRadius    + plankDepth ) * ax + vx * plankWidth, footHeight + bodyHeight , ( bodyTopRadius    + plankDepth ) * ay + vy * plankWidth],
-        [ ( bodyBottomRadius + plankDepth ) * ax + vx * plankWidth, footHeight + 0          , ( bodyBottomRadius + plankDepth ) * ay + vy * plankWidth],
-        [ ( bodyBottomRadius              ) * ax + vx * plankWidth, footHeight + 0          , ( bodyBottomRadius              ) * ay + vy * plankWidth],
-        [ ( bodyTopRadius                 ) * ax + vx * plankWidth, footHeight + bodyHeight , ( bodyTopRadius                 ) * ay + vy * plankWidth],
+        [ ( bodyBottomRadius + plankDepth ) * ax + vx * plankWidth, ( bodyBottomRadius + plankDepth ) * ay + vy * plankWidth, footHeight + 0          ],
+        [ ( bodyTopRadius    + plankDepth ) * ax + vx * plankWidth, ( bodyTopRadius    + plankDepth ) * ay + vy * plankWidth, footHeight + bodyHeight ],
+        [ ( bodyTopRadius                 ) * ax + vx * plankWidth, ( bodyTopRadius                 ) * ay + vy * plankWidth, footHeight + bodyHeight ],
+        [ ( bodyBottomRadius              ) * ax + vx * plankWidth, ( bodyBottomRadius              ) * ay + vy * plankWidth, footHeight + 0          ],
       ],
 
       // prettier-ignore
       [
-        [ 0, footHeight + bodyHeight + plankDepth + roofHeight, 0],
-        [ roofRadius * plankCapWidth / roofHeight * ax, footHeight + bodyHeight + plankDepth + roofHeight - plankCapWidth, roofRadius * plankCapWidth / roofHeight * ay],
-        [ roofRadius * plankCapWidth / roofHeight * bx, footHeight + bodyHeight + plankDepth + roofHeight - plankCapWidth, roofRadius * plankCapWidth / roofHeight * by],
+        [ roofRadius * plankCapWidth / roofHeight * ax, roofRadius * plankCapWidth / roofHeight * ay, footHeight + bodyHeight + plankDepth + roofHeight - plankCapWidth],
+        [ 0, 0, footHeight + bodyHeight + plankDepth + roofHeight],
+        [ roofRadius * plankCapWidth / roofHeight * bx, roofRadius * plankCapWidth / roofHeight * by, footHeight + bodyHeight + plankDepth + roofHeight - plankCapWidth],
       ],
 
       // prettier-ignore
       [
-        [ roofRadius * plankCapWidth / roofHeight * bx, footHeight + bodyHeight + roofHeight - plankCapWidth + plankDepth, roofRadius * plankCapWidth / roofHeight * by],
-        [ roofRadius * plankCapWidth / roofHeight * ax, footHeight + bodyHeight + roofHeight - plankCapWidth + plankDepth, roofRadius * plankCapWidth / roofHeight * ay],
-        [ roofRadius * plankCapWidth / roofHeight * ax, footHeight + bodyHeight + roofHeight - plankCapWidth             , roofRadius * plankCapWidth / roofHeight * ay],
-        [ roofRadius * plankCapWidth / roofHeight * bx, footHeight + bodyHeight + roofHeight - plankCapWidth             , roofRadius * plankCapWidth / roofHeight * by],
+        [ roofRadius * plankCapWidth / roofHeight * ax, roofRadius * plankCapWidth / roofHeight * ay, footHeight + bodyHeight + roofHeight - plankCapWidth + plankDepth],
+        [ roofRadius * plankCapWidth / roofHeight * bx, roofRadius * plankCapWidth / roofHeight * by, footHeight + bodyHeight + roofHeight - plankCapWidth + plankDepth],
+        [ roofRadius * plankCapWidth / roofHeight * bx, roofRadius * plankCapWidth / roofHeight * by, footHeight + bodyHeight + roofHeight - plankCapWidth             ],
+        [ roofRadius * plankCapWidth / roofHeight * ax, roofRadius * plankCapWidth / roofHeight * ay, footHeight + bodyHeight + roofHeight - plankCapWidth             ],
       ],
     ]) {
-      pushFlatFaceStatic(
+      basicStatic.pushFlatFace(
         face.map((v: any) => vec3.transformMat4([] as any, v, transform)),
         windmillPlankColor
       );
@@ -173,59 +172,59 @@ export const createWindmill = (transform: mat4) => {
       for (const face of [
         // prettier-ignore
         [
-        [ wingXm + -wingBottomH, wingMarginO + 0    , wingDepth],
-        [ wingXm +  wingBottomH, wingMarginO + 0    , wingDepth],
-        [ wingXm +  wingTopH   , wingMarginO + wingL, wingDepth],
-        [ wingXm + -wingTopH   , wingMarginO + wingL, wingDepth],
-      ],
+          [ wingXm +  wingBottomH, wingDepth, wingMarginO + 0    ],
+          [ wingXm + -wingBottomH, wingDepth, wingMarginO + 0    ],
+          [ wingXm + -wingTopH   , wingDepth, wingMarginO + wingL],
+          [ wingXm +  wingTopH   , wingDepth, wingMarginO + wingL],
+        ],
 
         // prettier-ignore
         [
-        [ wingXm +  wingTopH   , wingMarginO + wingL, -wingDepth],
-        [ wingXm +  wingBottomH, wingMarginO + 0    , -wingDepth],
-        [ wingXm + -wingBottomH, wingMarginO + 0    , -wingDepth],
-        [ wingXm + -wingTopH   , wingMarginO + wingL, -wingDepth],
-      ],
+          [ wingXm +  wingBottomH, -wingDepth, wingMarginO + 0    ],
+          [ wingXm +  wingTopH   , -wingDepth, wingMarginO + wingL],
+          [ wingXm + -wingTopH   , -wingDepth, wingMarginO + wingL],
+          [ wingXm + -wingBottomH, -wingDepth, wingMarginO + 0    ],
+        ],
 
         // prettier-ignore
         [
-        [ wingXm + wingTopH   , wingMarginO + wingL, -wingDepth],
-        [ wingXm + wingTopH   , wingMarginO + wingL,  wingDepth],
-        [ wingXm + wingBottomH, wingMarginO + 0    ,  wingDepth],
-        [ wingXm + wingBottomH, wingMarginO + 0    , -wingDepth],
-      ],
+          [ wingXm + wingTopH   ,  wingDepth, wingMarginO + wingL],
+          [ wingXm + wingTopH   , -wingDepth, wingMarginO + wingL],
+          [ wingXm + wingBottomH, -wingDepth, wingMarginO + 0    ],
+          [ wingXm + wingBottomH,  wingDepth, wingMarginO + 0    ],
+        ],
 
         // prettier-ignore
         [
-        [ wingXm + -wingTopH   , wingMarginO + wingL,  wingDepth],
-        [ wingXm + -wingTopH   , wingMarginO + wingL, -wingDepth],
-        [ wingXm + -wingBottomH, wingMarginO + 0    , -wingDepth],
-        [ wingXm + -wingBottomH, wingMarginO + 0    ,  wingDepth],
-      ],
+          [ wingXm + -wingTopH   , -wingDepth, wingMarginO + wingL],
+          [ wingXm + -wingTopH   ,  wingDepth, wingMarginO + wingL],
+          [ wingXm + -wingBottomH,  wingDepth, wingMarginO + 0    ],
+          [ wingXm + -wingBottomH, -wingDepth, wingMarginO + 0    ],
+        ],
 
         // prettier-ignore
         [
-        [ wingXm + -wingTopH, wingMarginO + wingL,  wingDepth],
-        [ wingXm +  wingTopH, wingMarginO + wingL,  wingDepth],
-        [ wingXm +  wingTopH, wingMarginO + wingL, -wingDepth],
-        [ wingXm + -wingTopH, wingMarginO + wingL, -wingDepth],
-      ],
+          [ wingXm +  wingTopH,  wingDepth, wingMarginO + wingL],
+          [ wingXm + -wingTopH,  wingDepth, wingMarginO + wingL],
+          [ wingXm + -wingTopH, -wingDepth, wingMarginO + wingL],
+          [ wingXm +  wingTopH, -wingDepth, wingMarginO + wingL],
+        ],
 
         // prettier-ignore
         [
-        [ wingXm +  wingBottomH, wingMarginO, -wingDepth],
-        [ wingXm +  wingBottomH, wingMarginO,  wingDepth],
-        [ wingXm + -wingBottomH, wingMarginO,  wingDepth],
-        [ wingXm + -wingBottomH, wingMarginO, -wingDepth],
-      ],
+          [ wingXm +  wingBottomH,  wingDepth, wingMarginO],
+          [ wingXm +  wingBottomH, -wingDepth, wingMarginO],
+          [ wingXm + -wingBottomH, -wingDepth, wingMarginO],
+          [ wingXm + -wingBottomH,  wingDepth, wingMarginO],
+        ],
       ]) {
-        pushFlatFaceDynamic(
+        basicDynamic.pushFlatFace(
           face.map((v: any) => {
             const p: vec3 = [] as any;
 
             vec3.add(v, v, wingO);
-            vec3.rotateY(v, v, wingO, -0.16);
-            vec3.rotateZ(
+            vec3.rotateZ(v, v, wingO, -0.16);
+            vec3.rotateY(
               v,
               v,
               wingO,

@@ -2,6 +2,7 @@ import { gl } from "../canvas";
 // import { update as updateParticles } from "./meshes/particles";
 // import { update as updateTerrain } from "./meshes/terrain";
 import { update as updateCursor } from "./meshes/cursor";
+import { update as updateWindmill } from "./meshes/windmill";
 
 import "./meshes/terrain";
 
@@ -24,6 +25,7 @@ export const render = () => {
   // updateParticles();
   // updateTerrain();
   updateCursor();
+  updateWindmill();
 
   // basicDynamic.pushFlatFace(
   //   [
