@@ -3,16 +3,22 @@ import { canvas } from "../canvas";
 import { clamp } from "../math/utils";
 import { Handler } from "../controls-type";
 import { up } from "../constant";
+import {
+  cameraOrigin,
+  lookAtMatrix3Inv,
+  worldMatrix,
+  worldMatrixInv,
+} from "./shared";
 
 const maxZoom = 10;
 const minZoom = 0;
 
 // initialize static perspective matrix
-export const perspectiveMatrix = new Float32Array(4 * 4);
+const perspectiveMatrix = new Float32Array(4 * 4);
 const fovX = Math.PI / 3;
 const aspect = window.innerWidth / window.innerHeight;
 const near = 0.005;
-const far = 20;
+const far = 8;
 mat4.perspective(perspectiveMatrix, fovX, aspect, near, far);
 
 // camera primitive
@@ -20,32 +26,27 @@ let phi = 1.2;
 let theta = 1;
 let zoom = Math.floor((maxZoom + minZoom) / 2);
 const rotationSpeed = 3;
-export const lookAtPoint: vec3 = [0, 0, 0];
-export const eye: vec3 = [0, 0, 1];
+const lookAtPoint: vec3 = [0, 0, 0];
 
 // lookAtMatrix, build from the camera
-export const lookAtMatrix = new Float32Array(4 * 4);
-
-// combination or perspective and lookAt matrices
-export const worldMatrix = new Float32Array(4 * 4);
-
-// inverse of the 3x3 lookAt matrix
-// used for bill boarding
-export const lookAtMatrix3Inv = new Float32Array(3 * 3);
+const lookAtMatrix = new Float32Array(4 * 4);
 
 const update = () => {
   const radius = 0.8 + zoom * 0.09;
 
   const sinPhiRadius = Math.sin(phi) * radius;
-  eye[0] = sinPhiRadius * Math.sin(theta);
-  eye[1] = Math.cos(phi) * radius;
-  eye[2] = sinPhiRadius * Math.cos(theta);
-  mat4.lookAt(lookAtMatrix, eye, lookAtPoint, up);
+  cameraOrigin[0] = sinPhiRadius * Math.sin(theta);
+  cameraOrigin[1] = sinPhiRadius * Math.cos(theta);
+  cameraOrigin[2] = Math.cos(phi) * radius;
+
+  mat4.lookAt(lookAtMatrix, cameraOrigin, lookAtPoint, up);
 
   mat4.multiply(worldMatrix, perspectiveMatrix, lookAtMatrix);
 
   mat3.fromMat4(lookAtMatrix3Inv, lookAtMatrix);
   mat3.invert(lookAtMatrix3Inv, lookAtMatrix3Inv);
+
+  mat4.invert(worldMatrixInv, worldMatrix);
 };
 
 update();
@@ -65,10 +66,10 @@ const rotateMove: Handler = ([{ pageX: x, pageY: y }]) => {
     const dx = x - px!;
     const dy = y - py!;
 
-    theta -= (dx / window.innerHeight) * rotationSpeed;
+    theta += (dx / window.innerHeight) * rotationSpeed;
     phi -= (dy / window.innerHeight) * rotationSpeed;
 
-    phi = clamp(phi, Math.PI / 5, (2.2 * Math.PI) / 5);
+    phi = clamp(phi, Math.PI / 12, (3 * Math.PI) / 4);
 
     px = x;
     py = y;

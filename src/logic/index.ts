@@ -1,4 +1,5 @@
 import { vec3 } from "gl-matrix";
+import { cells as terrainCells } from "../generation/terrain/cells";
 
 export let date = 0;
 
@@ -15,7 +16,6 @@ export const maxTic = 11;
 export const touches: { p: vec3; i: number; date: number }[] = [];
 
 export type Cell = {
-  area: number;
   growth: number;
 } & (
   | {
@@ -37,7 +37,13 @@ export type Cell = {
     }
 );
 
-export const cells: Cell[] = [];
+export const cells: Cell[] = terrainCells.map(
+  () =>
+    ({
+      type: "growing",
+      growth: maxGrowth * Math.random() * 0.8,
+    } as any)
+);
 
 export const stepWorld = () => {
   const dt = 1 / 60;
@@ -117,6 +123,10 @@ export const stepWorld = () => {
           (cell.ticTarget - cell.tic) * tension - cell.ticVelocity * friction;
         cell.ticVelocity += a * dt;
         cell.tic += cell.ticVelocity * dt;
+        if (cell.tic < 0) {
+          cell.tic = 0;
+          cell.ticVelocity = 0;
+        }
 
         break;
       }

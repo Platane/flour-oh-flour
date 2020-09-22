@@ -14,6 +14,8 @@ const onStart: Handler = (t) => {
 const onMove: Handler = (t) => {
   onTouchMove(t);
   onHover(t);
+
+  if (t0 && Math.abs(t0[0].pageX - t[0].pageX) > 30) downTimeStamp = 0;
 };
 const onEnd: Handler = (t) => {
   onTouchEnd(t);

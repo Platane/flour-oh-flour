@@ -42,7 +42,7 @@
     "test": "jest --config ./jest.config.js --no-cache --passWithNoTests --coverage --verbose",
     "type": "tsc --noEmit",
     "lint": "yarn prettier -c '**/*.{ts,tsx,js,jsx,json,md}' '!**/{dist,coverage}/**'",
-    "build": "ts-node -e \"require('./scripts/build.ts').build()\" && ( cd dist ; advzip -4 -a -q ./bundle.zip ./* ) && du -b dist/bundle.zip | cut -f1",
+    "build": "ts-node -e \"require('./scripts/build.ts').build().catch((err:Error)=>{console.error(err);process.exit(1)})\" && ( cd dist ; advzip -4 -a -q ./bundle.zip ./* ) && du -b dist/bundle.zip | cut -f1",
     "dev": "ts-node -e \"require('./scripts/dev.ts').dev()\""
   }
 }

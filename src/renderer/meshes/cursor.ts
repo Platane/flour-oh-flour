@@ -1,13 +1,12 @@
 import { vec3 } from "gl-matrix";
 import { z, up, x, zero } from "../../constant";
-import { pushFlatFace } from "../globalBuffers/dynamic";
-import { vertices as staticVertices } from "../globalBuffers/static";
+import { basicDynamic } from "../materials";
 import { raycastFromScreen } from "../raycast";
-import { fieldsN } from "./terrain";
+import { dynamicUpdates } from "../shared";
 
-export const cursorPosition: vec3 = [0, -10, 0];
+export const cursorPosition: vec3 = [0, 0, 0];
 
-export const update = () => {
+const update = () => {
   const base = [up, x, z];
 
   for (let k = 3; k--; ) {
@@ -22,7 +21,7 @@ export const update = () => {
       [1, 1],
     ] as const;
 
-    const s = 0.01;
+    const s = 0.003;
 
     for (const tn of [1, -1]) {
       const vertices = kernel.map(([tu, tv]) => {
@@ -35,23 +34,24 @@ export const update = () => {
         return p;
       });
 
-      if (tn === 1) vertices.reverse();
+      if (tn === -1) vertices.reverse();
 
-      pushFlatFace(vertices, n);
+      basicDynamic.pushFlatFace(vertices, n);
     }
   }
 };
 
-if (process.env.NODE_ENV !== "production")
-  document.body.addEventListener(
-    "mousemove",
-    ({ pageX, pageY }) => {
-      const x = (pageX / window.innerWidth) * 2 - 1;
-      const y = -((pageY / window.innerHeight) * 2 - 1);
+dynamicUpdates.push(update);
 
-      const u = raycastFromScreen(x, y, staticVertices as any, fieldsN);
+document.body.addEventListener(
+  "mousemove",
+  ({ pageX, pageY }) => {
+    const x = (pageX / window.innerWidth) * 2 - 1;
+    const y = -((pageY / window.innerHeight) * 2 - 1);
 
-      vec3.copy(cursorPosition, u ? u.p : zero);
-    },
-    { passive: true }
-  );
+    const u = raycastFromScreen(x, y);
+
+    vec3.copy(cursorPosition, u ? u.p : zero);
+  },
+  { passive: true }
+);
