@@ -1,11 +1,10 @@
 import { gl } from "../canvas";
+// import "./meshes/cursor";
 import "./meshes/particles";
 import "./meshes/terrain";
-import "./meshes/cursor";
 import "./meshes/windmill";
 import "./meshes/field";
-
-import "./meshes/terrain";
+import "./meshes/flourStack";
 
 import { basicDynamic, basicStatic } from "./materials";
 import { dynamicUpdates } from "./shared";
