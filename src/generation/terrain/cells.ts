@@ -2,6 +2,7 @@ import { vec2, vec3 } from "gl-matrix";
 import { tmp1, tmp2, up } from "../../constant";
 import { getVoronoiTesselation } from "../../math/getVoronoiTesselation";
 import {
+  cross,
   getPolygonArea,
   getPolygonBoundingSphereRadius,
 } from "../../math/convexPolygon";
@@ -15,6 +16,7 @@ import { distanceToPotatoHull } from "./potatoHull";
 //
 const cellN = 8;
 const cellCloudN = 50;
+const cellMinArea = 0.03;
 
 //
 // output
@@ -77,7 +79,7 @@ while (faces.length && cells.length < cellN) {
   const hullArea = getPolygonArea(points);
   const hullCompactness = hullArea / boundingSphereArea;
 
-  if (hullArea < 0.006 || hullCompactness < 0.3) continue;
+  if (hullArea < cellMinArea || hullCompactness < 0.3) continue;
 
   // some point are already frozen,
   // meaning we can no longer move them
@@ -145,7 +147,8 @@ while (faces.length && cells.length < cellN) {
   }
 
   // ensure cell is up faced
-  if (vec3.dot(up, normal) > 0) points.reverse();
+  cross(normal, points[1], points[0], points[2], points[0]);
+  if (vec3.dot(up, normal) < 0) points.reverse();
 
   // add to the cell list
   cells.push(points);
